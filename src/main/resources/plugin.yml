@@ -1,0 +1,4 @@
+name: NoxRadarJammer
+version: ${project.version}
+authors: [Coaster3000, bbcsto13]
+main: ${main}
