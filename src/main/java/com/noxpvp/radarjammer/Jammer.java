@@ -48,7 +48,7 @@ public class Jammer{
 		
 		FileConfiguration config = plugin.getRadarConfig();
 		
-		this.mode = JamMode.valueOf(config.get(RadarJammer.NODE_MODE, String.class, JamMode.CROUCHED.name()));
+		this.mode = JamMode.valueOf(config.get(RadarJammer.NODE_MODE, String.class, JamMode.INVISIBLE.name()));
 		this.radius = config.get(RadarJammer.NODE_RADIUS, Integer.class, 40);
 		this.spread = config.get(RadarJammer.NODE_SPREAD, Integer.class, 8);
 		
@@ -116,57 +116,15 @@ public class Jammer{
 		} else if (!jamming.contains(name))
 			return;
 		
-		final Location pLoc = p.getLocation();
-		 
-		int nextId = Short.MAX_VALUE;
-		
-		int px = (int) pLoc.getX();
-		int py = (int) pLoc.getY();
-		int pz = (int) pLoc.getZ();
-		
-		CommonPacket jammerPacket,
-				metaPacket;
-		
-		DataWatcher dw = new DataWatcher();
-		dw.set(0, (byte) 0);
-		dw.set(12, (int) 0);
-
-/*		WatchableObjectRef dw2 = new WatchableObjectRef();
-		dw2.set(0, mode.getByte());
-		dw2.set(6, (float) RandomUtils.nextInt(20 - 12) + 12);
-		
-		List<DataWatcher> invisMeta = new ArrayList<DataWatcher>(Arrays.asList(dw2));*///FIXME
-		
-		try {
-			for (int x = px - radius; x < (px + (radius)); x = x + spread){
-				for (int z = pz - radius; z < (pz + (radius)); z = z + spread){
-					
-					height = (int) ((mode == JamMode.CROUCHED)? -2 : Math.floor(RandomUtils.nextInt((py + 40) - 5) + 5));
-					
-					jammerPacket = new CommonPacket(PacketType.OUT_ENTITY_SPAWN_NAMED);
-					metaPacket = new CommonPacket(PacketType.OUT_ENTITY_METADATA);
-					
-					Player random = Bukkit.getOnlinePlayers()[RandomUtils.nextInt(Bukkit.getOnlinePlayers().length)];
-					
-					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.entityId, nextId);
-					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.profile, random.getName());
-					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.x, (int) (x + RandomUtils.nextInt(3 - 1)) * 32);
-					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.y, (int) height * 32);
-					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.z, (int) (z + RandomUtils.nextInt(3 - 1)) * 32);
-					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.dataWatcher, dw);
-					
-/*					metaPacket.write(PacketType.OUT_ENTITY_METADATA.entityId, nextId);
-					metaPacket.write(PacketType.OUT_ENTITY_METADATA.watchedObjects, invisMeta);*///FIXME
-				 
-					PacketUtil.sendPacket(p, jammerPacket, false);
-//					PacketUtil.sendPacket(p, invisPacket, false);//FIXME
-					
-					nextId++;
-				}
+		{
+			Player[] players = Bukkit.getOnlinePlayers().clone();
+			String[] names = new String[players.length];
+			
+			for (int i = 0; i < players.length; i++){
+				names[i] = players[i].getName();
 			}
-		} catch (Exception e) {
-			plugin.getLogger().logp(Level.SEVERE, "Jammer.java", "jam(org.bukkit.entity.Player)", "uh oh...");
-			e.printStackTrace();
+			new JammerPacket(p, radius, spread, mode, names).runTaskAsynchronously(plugin);
+		
 		}
 		
 	}
