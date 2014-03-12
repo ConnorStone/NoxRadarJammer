@@ -17,7 +17,7 @@
 		</repository>
 	</repositories>
 	<properties>
-		<main>com.noxpvp.radarjammer.bukkit.RadarJammer</main>
+		<main>com.noxpvp.radarjammer.RadarJammer</main>
 	</properties>
 	<dependencies>
 		<dependency>
