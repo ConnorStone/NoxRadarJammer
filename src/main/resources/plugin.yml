@@ -1,4 +1,12 @@
 name: NoxRadarJammer
 version: ${project.version}
+author: bbcst13
 authors: [Coaster3000, bbcsto13]
 main: ${main}
+depend: [BKCommonLib]
+website: http://www.noxpvp.com
+commands:
+  radar:
+    aliases: [radarjammer, jammer, rj]
+    description: Displays the help menu for the RadarJammer
+    usage: /<command>
