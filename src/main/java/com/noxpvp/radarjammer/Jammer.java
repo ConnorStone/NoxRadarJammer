@@ -123,7 +123,7 @@ public class Jammer{
 			for (int i = 0; i < players.length; i++){
 				names[i] = players[i].getName();
 			}
-			new JammerPacket(p, radius, spread, mode, names).runTaskAsynchronously(plugin);
+			new JammerPacket(p, radius, spread, mode, names).start();
 		
 		}
 		

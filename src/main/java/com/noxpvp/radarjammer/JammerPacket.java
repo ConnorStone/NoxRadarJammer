@@ -5,15 +5,15 @@ import java.util.logging.Level;
 import org.apache.commons.lang.math.RandomUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
+import com.bergerkiller.bukkit.common.AsyncTask;
 import com.bergerkiller.bukkit.common.protocol.CommonPacket;
 import com.bergerkiller.bukkit.common.protocol.PacketType;
 import com.bergerkiller.bukkit.common.utils.PacketUtil;
 import com.bergerkiller.bukkit.common.wrappers.DataWatcher;
 import com.noxpvp.radarjammer.Jammer.JamMode;
 
-public class JammerPacket extends BukkitRunnable{
+public class JammerPacket extends AsyncTask{
 
 	RadarJammer plugin;
 	
@@ -34,16 +34,19 @@ public class JammerPacket extends BukkitRunnable{
 	final int pz;
 	
 	public JammerPacket(Player p, int radius, int spread, JamMode mode, String[] names) {
+		super("RadarJammer's haksor slaying thread", Thread.MIN_PRIORITY);
+		
 		this.plugin = RadarJammer.getInstance();
 		
 		nextId = Short.MAX_VALUE;
 		
+		this.p = p;
+		
 		this.radius = radius;
 		this.spread = spread;
+		this.mode = mode;
 		
 		this.names = names;
-		
-		this.p = p;
 				
 		{
 			Location pLoc = p.getLocation();
@@ -57,14 +60,9 @@ public class JammerPacket extends BukkitRunnable{
 	public void run() {
 		
 		DataWatcher dw = new DataWatcher();
-		dw.set(0, (byte) 0);
+		dw.set(0, (byte) mode.getByte());
+		dw.set(6, (float) RandomUtils.nextInt(20 - 12) + 12);
 		dw.set(12, (int) 0);
-
-/*		WatchableObjectRef dw2 = new WatchableObjectRef();
-		dw2.set(0, mode.getByte());
-		dw2.set(6, (float) RandomUtils.nextInt(20 - 12) + 12);
-		
-		List<DataWatcher> invisMeta = new ArrayList<DataWatcher>(Arrays.asList(dw2));*///FIXME
 		
 		try {
 			for (int x = px - radius; x < (px + (radius)); x = x + spread){
@@ -74,7 +72,6 @@ public class JammerPacket extends BukkitRunnable{
 					height = (int) ((mode == JamMode.CROUCHED)? -2 : Math.floor(RandomUtils.nextInt((py) - 5) + 5));
 					
 					jammerPacket = new CommonPacket(PacketType.OUT_ENTITY_SPAWN_NAMED);
-					metaPacket = new CommonPacket(PacketType.OUT_ENTITY_METADATA);
 					
 					String random = names[RandomUtils.nextInt(names.length)];
 					
@@ -84,12 +81,8 @@ public class JammerPacket extends BukkitRunnable{
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.y, (int) height * 32);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.z, (int) (z + RandomUtils.nextInt(3 - 1)) * 32);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.dataWatcher, dw);
-					
-/*					metaPacket.write(PacketType.OUT_ENTITY_METADATA.entityId, nextId);
-					metaPacket.write(PacketType.OUT_ENTITY_METADATA.watchedObjects, invisMeta);*///FIXME
 				 
 					PacketUtil.sendPacket(p, jammerPacket, false);
-//					PacketUtil.sendPacket(p, invisPacket, false);//FIXME
 					
 					nextId++;
 				}

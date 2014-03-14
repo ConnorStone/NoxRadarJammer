@@ -54,7 +54,7 @@ public class RadarJammer extends PluginBase{
 		if (config.exists()) {
 			config.load();
 		} else {
-			config.setHeader("Nox RadarJammer || Authors: Connor Stone AKA bbcsto13, Chris krier AKA coaster3000");
+			config.setHeader("\nNox RadarJammer || Authors: Connor Stone AKA bbcsto13, Chris krier AKA coaster3000\nhttp://dev.bukkit.org/bukkit-plugins/radarjammer/ \n http://Noxpvp.com/");
 			
 			config.setHeader(NODE_RADIUS, "MAX: " + Jammer.maxSize + ". The square radius around the player to add jamming entitys");
 			config.set(NODE_RADIUS, 40);
@@ -62,7 +62,7 @@ public class RadarJammer extends PluginBase{
 			config.setHeader(NODE_SPREAD, "MAX: " + Jammer.maxSpread + " MIN: " + Jammer.minSpread + ". The distance each jammer is from one another. ie: higher spread = less jammers");
 			config.set(NODE_SPREAD, 8);
 
-			config.setHeader(NODE_MODE, "Modes: " + JamMode.INVISIBLE.name() + ", " + JamMode.CROUCHED.name() + ". Note: crouched mode will force jammers at Y -2");
+			config.setHeader(NODE_MODE, "Modes: " + JamMode.INVISIBLE.name() + ", " + JamMode.CROUCHED.name() + ". Note: crouched mode will force jammers at Y -2 and will only be useful for combating minimaps at low levels");
 			config.set(NODE_MODE, JamMode.INVISIBLE.name());
 			
 			config.save();
@@ -144,6 +144,7 @@ public class RadarJammer extends PluginBase{
 			
 			if (ARG_RELOAD.contains(arg)){
 				this.reloadConfig();
+				sender.sendMessage(PLUGIN_TAG + ChatColor.GREEN + ": Reloaded");
 				
 				return true;
 			} else if (ARG_HELP.contains(arg))
