@@ -10,6 +10,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import com.noxpvp.radarjammer.events.PlayerChunkMoveEvent;
+import com.noxpvp.radarjammer.events.PlayerMoveFullBlockEvent;
 
 public class RadarListener implements Listener{
 
@@ -24,12 +25,19 @@ public class RadarListener implements Listener{
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerMove(PlayerMoveEvent event){
 		
-		//Return if player hasn't moved a full chunk
+/*		if (((int) event.getTo().getBlockX() == (int) event.getFrom().getBlockX()) &&
+			((int) event.getTo().getBlockZ() == (int) event.getFrom().getBlockZ()) &&
+			((int) event.getTo().getBlockY() == (int) event.getFrom().getBlockY())){
+			
+			return;
+		}
+		
+		Bukkit.getPluginManager().callEvent(new PlayerMoveFullBlockEvent(event));*/
+		
 		if ((event.getFrom().getChunk() == event.getTo().getChunk()))
 			return;
 		
-		PlayerChunkMoveEvent chunkEvent = new PlayerChunkMoveEvent(event);
-		Bukkit.getPluginManager().callEvent(chunkEvent);
+		Bukkit.getPluginManager().callEvent(new PlayerChunkMoveEvent(event));
 		
 	}
 	
@@ -40,8 +48,18 @@ public class RadarListener implements Listener{
 		if (p.hasPermission(RadarJammer.PERM_EXEMPT))
 			return;
 		
-		plugin.getJammer().jam(p);
+		plugin.getJammer().jamFullRad(p);
 	}
+	
+	/*@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onPlayerFullBlockMove(PlayerMoveFullBlockEvent event){
+		Player p = event.getPlayer();
+		
+		if (p.hasPermission(RadarJammer.PERM_EXEMPT))
+			return;
+		
+		plugin.getJammer().jamBox(p);
+	}*/
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerJoin(PlayerJoinEvent event){

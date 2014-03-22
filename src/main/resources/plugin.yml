@@ -1,6 +1,6 @@
 name: NoxRadarJammer
 version: ${project.version}
-author: bbcst13
+author: bbcsto13
 authors: [Coaster3000, bbcsto13]
 main: ${main}
 depend: [BKCommonLib]
