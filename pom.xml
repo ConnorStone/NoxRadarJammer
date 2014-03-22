@@ -3,10 +3,18 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.noxpvp</groupId>
 	<artifactId>NoxRadarJammer</artifactId>
-	<version>1.0 Alpha</version>
+	<version>1.1 Beta</version>
 	<name>RadarJammer.</name>
 	<description>This will jam all entity radars on clients with invisible entities and has the potention to reveal such hackers.</description>
 	<repositories>
+		<repository>
+			<id>vault-repo</id>
+			<url>http://ci.herocraftonline.com/plugin/repository/everything</url>
+		</repository>
+		<repository>
+			<id>hawk-repo</id>
+			<url>http://ci.hawkfalcon.com/plugin/repository/everything/</url>
+		</repository>
 		<repository>
 			<id>bukkit-repo</id>
 			<url>http://repo.bukkit.org/content/groups/public/</url>
@@ -20,6 +28,17 @@
 		<main>com.noxpvp.radarjammer.RadarJammer</main>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>net.milkbowl.vault</groupId>
+			<artifactId>Vault</artifactId>
+			<version>1.2.30</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.dsh105</groupId>
+			<artifactId>HoloAPI</artifactId>
+			<version>1.0.7-SNAPSHOT</version>
+		</dependency>
 		<dependency>
 			<groupId>com.bergerkiller.bukkit</groupId>
 			<artifactId>BKCommonLib</artifactId>

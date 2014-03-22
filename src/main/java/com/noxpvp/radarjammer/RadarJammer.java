@@ -10,11 +10,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
 import com.bergerkiller.bukkit.common.Common;
 import com.bergerkiller.bukkit.common.PluginBase;
 import com.bergerkiller.bukkit.common.config.FileConfiguration;
+import com.dsh105.holoapi.HoloAPI;
+import com.noxpvp.core.NoxCore;
 import com.noxpvp.radarjammer.Jammer.JamMode;
 
 public class RadarJammer extends PluginBase{
@@ -37,7 +40,26 @@ public class RadarJammer extends PluginBase{
 	public final static List<String> ARG_RELOAD = Arrays.asList("reload", "r");
 	public final static List<String> ARG_HELP = Arrays.asList("help", "h");
 	
+	public static boolean isHoloAPIActive() {
+		return holoAPI != null && Bukkit.getPluginManager().isPluginEnabled(holoAPI);
+	}
+	
+	public static boolean isNoxCoreActive() {
+		return noxCore != null && Bukkit.getPluginManager().isPluginEnabled(noxCore);
+	}
+	
+	public final HoloAPI getHoloAPI() {
+		return holoAPI;
+	}
+	
+	public final NoxCore getNoxCore() {
+		return noxCore;
+	}
+	
 	private static RadarJammer instance;
+	
+	private static HoloAPI holoAPI;
+	private static NoxCore noxCore;
 	
 	private static FileConfiguration config;
 	private RadarListener radarListener;
@@ -98,6 +120,17 @@ public class RadarJammer extends PluginBase{
 		
 		radarListener = new RadarListener(this);
 		jammer = new Jammer(this);
+		
+		{
+			Plugin plugin = pm.getPlugin("HoloAPI");
+			if (plugin != null && plugin instanceof HoloAPI)
+				holoAPI = (HoloAPI) plugin;
+		}
+		{
+			Plugin plugin = pm.getPlugin("NoxCore");
+			if (plugin != null && plugin instanceof NoxCore)
+				noxCore = (NoxCore) plugin;
+		}
 	}
 
 	private void setInstance(RadarJammer radarJammer) {

@@ -4,16 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import org.apache.commons.lang.math.RandomUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import com.bergerkiller.bukkit.common.config.FileConfiguration;
 import com.bergerkiller.bukkit.common.protocol.CommonPacket;
 import com.bergerkiller.bukkit.common.protocol.PacketType;
 import com.bergerkiller.bukkit.common.utils.PacketUtil;
-import com.bergerkiller.bukkit.common.wrappers.DataWatcher;
 
 public class Jammer{
 
@@ -22,7 +19,7 @@ public class Jammer{
 	private RadarJammer plugin;
 	private List<String> jamming;
 	
-	private int radius, spread, height;
+	private int radius, spread;
 	private JamMode mode;
 
 	public enum JamMode{
@@ -68,7 +65,7 @@ public class Jammer{
 			if (!jamming.contains(name))
 				jamming.add(name);
 			
-			jam(p);
+			jamFullRad(p);
 				
 		}
 		
@@ -101,10 +98,10 @@ public class Jammer{
 		if (!jamming.contains(name))
 			jamming.add(name);
 		
-		jam(Bukkit.getPlayer(name));
+		jamFullRad(Bukkit.getPlayer(name));
 	}
 	
-	public void jam(Player p){
+	public void jamFullRad(Player p){
 		String name = p.getName();
 		
 		if (!p.isOnline()){
@@ -121,6 +118,9 @@ public class Jammer{
 			String[] names = new String[players.length];
 			
 			for (int i = 0; i < players.length; i++){
+				if (!p.canSee(players[i]))
+					continue;	
+				
 				names[i] = players[i].getName();
 			}
 			new JammerPacket(p, radius, spread, mode, names).start();
@@ -128,6 +128,30 @@ public class Jammer{
 		}
 		
 	}
+	
+/*	public void jamBox(Player p){
+		String name = p.getName();
+		
+		if (!p.isOnline()){
+			
+			if (jamming.contains(name))
+				jamming.remove(name);
+			
+			return;
+		} else if (!jamming.contains(name))
+			return;
+		
+		{
+			Player[] players = Bukkit.getOnlinePlayers().clone();
+			String[] names = new String[players.length];
+			
+			for (int i = 0; i < players.length ; i++){
+				names[i] = players[i].getName();
+			}
+			new JammerBoxPacket(p, 10, names).start();
+		
+		}
+	}*/
 	
 
 }
