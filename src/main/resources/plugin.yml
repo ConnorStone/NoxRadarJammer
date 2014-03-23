@@ -4,6 +4,7 @@ author: bbcsto13
 authors: [Coaster3000, bbcsto13]
 main: ${main}
 depend: [BKCommonLib]
+softpend: [HoloAPI, NoxCore]
 website: http://www.noxpvp.com
 commands:
   radar:
