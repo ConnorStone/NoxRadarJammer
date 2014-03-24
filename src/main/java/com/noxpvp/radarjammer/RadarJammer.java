@@ -16,6 +16,7 @@ import org.bukkit.plugin.PluginManager;
 import com.bergerkiller.bukkit.common.Common;
 import com.bergerkiller.bukkit.common.PluginBase;
 import com.bergerkiller.bukkit.common.config.FileConfiguration;
+import com.bergerkiller.bukkit.common.metrics.Metrics;
 import com.dsh105.holoapi.HoloAPI;
 import com.noxpvp.core.NoxCore;
 import com.noxpvp.radarjammer.Jammer.JamMode;
@@ -131,6 +132,9 @@ public class RadarJammer extends PluginBase{
 			if (plugin != null && plugin instanceof NoxCore)
 				noxCore = (NoxCore) plugin;
 		}
+		
+		Metrics.initialize(this);
+		//TODO cool graphs
 	}
 
 	private void setInstance(RadarJammer radarJammer) {

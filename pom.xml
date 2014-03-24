@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.noxpvp</groupId>
 	<artifactId>NoxRadarJammer</artifactId>
-	<version>1.1 Beta</version>
+	<version>1.2.1 Beta</version>
 	<name>RadarJammer.</name>
 	<description>This will jam all entity radars on clients with invisible entities and has the potention to reveal such hackers.</description>
 	<repositories>
