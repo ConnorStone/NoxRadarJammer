@@ -6,15 +6,19 @@ import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import com.bergerkiller.bukkit.common.config.FileConfiguration;
 import com.bergerkiller.bukkit.common.protocol.CommonPacket;
 import com.bergerkiller.bukkit.common.protocol.PacketType;
 import com.bergerkiller.bukkit.common.utils.PacketUtil;
+import com.dsh105.holoapi.util.TagIdGenerator;
 
 public class Jammer{
 
 	public final static int maxSize = 64, maxSpread = 20, minSpread = 2;
+
+	public static int startId = 0;
 	
 	private RadarJammer plugin;
 	private List<String> jamming;
@@ -56,6 +60,15 @@ public class Jammer{
 		else if (spread < minSpread)
 			spread = minSpread;
 		
+		if (startId <= 0) {
+			if (RadarJammer.isHoloAPIActive())
+				startId = TagIdGenerator.nextId(500);
+			else if (RadarJammer.isNoxCoreActive())
+				startId = com.noxpvp.core.packet.PacketUtil.getNewEntityId(500);
+			else
+				startId = Short.MAX_VALUE;
+		}
+		
 		for (Player p : Bukkit.getOnlinePlayers()){
 			if (p.hasPermission(RadarJammer.PERM_EXEMPT))
 				continue;
@@ -76,7 +89,7 @@ public class Jammer{
 		int[] ids = new int[amount + 5];
 		
 		try {
-			for (int i = Short.MAX_VALUE, r = 0; i < (amount + Short.MAX_VALUE); i++, r++)
+			for (int i = startId, r = 0; i < (amount + startId); i++, r++)
 				ids[r] = i;
 			
 			CommonPacket destroyer = new CommonPacket(PacketType.OUT_ENTITY_DESTROY);
@@ -128,30 +141,15 @@ public class Jammer{
 		}
 		
 	}
-	
-/*	public void jamBox(Player p){
+
+	public void jamFullRadUpdate(Player p, Vector dif) {
 		String name = p.getName();
 		
-		if (!p.isOnline()){
-			
-			if (jamming.contains(name))
-				jamming.remove(name);
-			
+		if (!p.isOnline() || !jamming.contains(name))
 			return;
-		} else if (!jamming.contains(name))
-			return;
-		
-		{
-			Player[] players = Bukkit.getOnlinePlayers().clone();
-			String[] names = new String[players.length];
+
+		new JammerUpdatePacket(p, dif, radius, spread).start();
 			
-			for (int i = 0; i < players.length ; i++){
-				names[i] = players[i].getName();
-			}
-			new JammerBoxPacket(p, 10, names).start();
-		
-		}
-	}*/
-	
+	}
 
 }

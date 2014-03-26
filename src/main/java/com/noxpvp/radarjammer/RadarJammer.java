@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
@@ -35,11 +36,13 @@ public class RadarJammer extends PluginBase{
 	public final static String NODE_RADIUS = "jammer.radius";
 	public final static String NODE_SPREAD = "jammer.spread";
 	public final static String NODE_MODE = "jammer.mode";
+	public final static String NODE_PER_BLOCK_UPDATE = "jammer.per-block-update";
 	
 	//Commands
 	public final static List<String> COMMAND_RADAR = Arrays.asList("radarjammer", "rj", "jammer", "radar");
 	public final static List<String> ARG_RELOAD = Arrays.asList("reload", "r");
 	public final static List<String> ARG_HELP = Arrays.asList("help", "h");
+	public final static List<String> ARG_VERSION = Arrays.asList("v", "version");
 	
 	public static boolean isHoloAPIActive() {
 		return holoAPI != null && Bukkit.getPluginManager().isPluginEnabled(holoAPI);
@@ -66,6 +69,8 @@ public class RadarJammer extends PluginBase{
 	private RadarListener radarListener;
 	private Jammer jammer;
 	
+	private boolean perBlockUpdate;
+	
 	public static RadarJammer getInstance(){
 		return instance;
 	}
@@ -87,6 +92,9 @@ public class RadarJammer extends PluginBase{
 
 			config.setHeader(NODE_MODE, "Modes: " + JamMode.INVISIBLE.name() + ", " + JamMode.CROUCHED.name() + ". Note: crouched mode will force jammers at Y -2 and will only be useful for combating minimaps at low levels");
 			config.set(NODE_MODE, JamMode.INVISIBLE.name());
+			
+			config.setHeader(NODE_PER_BLOCK_UPDATE, "Should we update the fake entity every time a player moves 1 block?");
+			config.set(NODE_PER_BLOCK_UPDATE, Boolean.FALSE);
 			
 			config.save();
 		}
@@ -119,7 +127,9 @@ public class RadarJammer extends PluginBase{
 		pm.addPermission(new Permission(PERM_EXEMPT, "Makes the player exempt from radar jamming", PermissionDefault.OP));
 		pm.addPermission(new Permission(PERM_RELOAD, "Allows the player to reload the plugin", PermissionDefault.OP));
 		
-		radarListener = new RadarListener(this);
+		perBlockUpdate = getRadarConfig().get(NODE_PER_BLOCK_UPDATE, Boolean.class, Boolean.FALSE);
+		
+		radarListener = new RadarListener(this, perBlockUpdate);
 		jammer = new Jammer(this);
 		
 		{
@@ -146,8 +156,14 @@ public class RadarJammer extends PluginBase{
 	public void reloadConfig() {
 		config.load();
 		
+		this.perBlockUpdate = getRadarConfig().get(NODE_PER_BLOCK_UPDATE, Boolean.class);
+		
 		jammer.unJamAll();
 		jammer = new Jammer(this);
+		
+		HandlerList.unregisterAll(radarListener);
+		radarListener = null;
+		radarListener = new RadarListener(getInstance(), perBlockUpdate);
 	}
 
 	public int getMinimumLibVersion() {
@@ -184,10 +200,15 @@ public class RadarJammer extends PluginBase{
 				sender.sendMessage(PLUGIN_TAG + ChatColor.GREEN + ": Reloaded");
 				
 				return true;
-			} else if (ARG_HELP.contains(arg))
+			} else if (ARG_HELP.contains(arg)) {
 				sendHelpMessage(sender);
-			
-			return true;
+				
+				return true;
+			} else if (ARG_VERSION.contains(arg)) {
+				sender.sendMessage(PLUGIN_TAG + ChatColor.GREEN + ": " + getVersion());
+				
+				return true;
+			}
 		}
 		
 		return false;

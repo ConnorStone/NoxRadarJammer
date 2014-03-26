@@ -15,11 +15,10 @@ import com.dsh105.holoapi.util.TagIdGenerator;
 import com.noxpvp.radarjammer.Jammer.JamMode;
 
 public class JammerPacket extends AsyncTask {
-	private static int Ids = 0;
-
 	RadarJammer plugin;
 	
 	private CommonPacket jammerPacket;
+	private DataWatcher dw;
 	private JamMode mode;
 	private int nextId;
 
@@ -36,28 +35,17 @@ public class JammerPacket extends AsyncTask {
 	public JammerPacket(Player p, int radius, int spread, JamMode mode, String[] names) {
 		super("RadarJammer - " + p.getName(), Thread.MIN_PRIORITY);
 		
-		if (Ids <= 0) {
-			if (RadarJammer.isHoloAPIActive())
-				Ids = TagIdGenerator.nextId(500);
-			else if (RadarJammer.isNoxCoreActive())
-				Ids = com.noxpvp.core.packet.PacketUtil.getNewEntityId(500);
-			else
-				Ids = Short.MAX_VALUE;
-		}
-		
-		
 		this.plugin = RadarJammer.getInstance();
 		
-		DataWatcher dw = new DataWatcher();
+		dw = new DataWatcher();
 		dw.set(0, mode.getByte());
 		dw.set(6, (float) RandomUtils.nextInt(20 - 4) + 4);
 		dw.set(12, (int) 0);
 		
 		jammerPacket = new CommonPacket(PacketType.OUT_ENTITY_SPAWN_NAMED);
-		jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.dataWatcher, dw);
 		
 		this.p = p;
-		this.nextId = Ids;
+		this.nextId = Jammer.startId;
 		
 		this.radius = radius;
 		this.spread = spread;
@@ -82,11 +70,14 @@ public class JammerPacket extends AsyncTask {
 					//Random actual player names, from players on the server
 					String random = names[RandomUtils.nextInt(names.length)];
 					
+					jammerPacket = new CommonPacket(PacketType.OUT_ENTITY_SPAWN_NAMED);
+					
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.entityId, ++nextId);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.profile, random);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.x, (int) (x + RandomUtils.nextInt(2)) * 32);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.y, (int) height * 32);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.z, (int) (z + RandomUtils.nextInt(2)) * 32);
+					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.dataWatcher, dw);
 				 
 					PacketUtil.sendPacket(p, jammerPacket, false);
 					
