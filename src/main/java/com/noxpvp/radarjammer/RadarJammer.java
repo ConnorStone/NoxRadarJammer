@@ -82,7 +82,7 @@ public class RadarJammer extends PluginBase{
 		if (config.exists()) {
 			config.load();
 		} else {
-			config.setHeader("\nNox RadarJammer || Authors: Connor Stone AKA bbcsto13, Chris krier AKA coaster3000\nhttp://dev.bukkit.org/bukkit-plugins/radarjammer/ \n http://Noxpvp.com/");
+			config.setHeader("Nox RadarJammer || Authors: Connor Stone AKA bbcsto13, Chris krier AKA coaster3000\nhttp://dev.bukkit.org/bukkit-plugins/radarjammer/ \n http://Noxpvp.com/");
 			
 			config.setHeader(NODE_RADIUS, "MAX: " + Jammer.maxSize + ". The square radius around the player to add jamming entitys");
 			config.set(NODE_RADIUS, 40);

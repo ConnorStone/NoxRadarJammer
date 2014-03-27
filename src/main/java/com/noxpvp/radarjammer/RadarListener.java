@@ -1,8 +1,6 @@
 package com.noxpvp.radarjammer;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -71,10 +69,17 @@ public class RadarListener implements Listener{
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerJoin(PlayerJoinEvent event){
-		Player p = event.getPlayer();
+		final Player p = event.getPlayer();
 		
 		if (p.hasPermission(RadarJammer.PERM_EXEMPT))
 			return;
+		
+		Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+			
+			public void run() {
+				p.sendMessage("§f======== §3 §6 §3 §6 §3 §6 §e §f========");				
+			}
+		}, 5);
 		
 		plugin.getJammer().addJam(p.getName());
 			

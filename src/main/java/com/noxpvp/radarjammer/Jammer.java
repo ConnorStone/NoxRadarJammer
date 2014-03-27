@@ -127,7 +127,7 @@ public class Jammer{
 			return;
 		
 		{
-			Player[] players = Bukkit.getOnlinePlayers().clone();
+			final Player[] players = Bukkit.getOnlinePlayers();
 			String[] names = new String[players.length];
 			
 			for (int i = 0; i < players.length; i++){
