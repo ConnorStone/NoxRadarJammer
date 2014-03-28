@@ -11,15 +11,12 @@ import com.bergerkiller.bukkit.common.protocol.CommonPacket;
 import com.bergerkiller.bukkit.common.protocol.PacketType;
 import com.bergerkiller.bukkit.common.utils.PacketUtil;
 import com.bergerkiller.bukkit.common.wrappers.DataWatcher;
-import com.dsh105.holoapi.util.TagIdGenerator;
-import com.noxpvp.radarjammer.Jammer.JamMode;
 
 public class JammerPacket extends AsyncTask {
 	RadarJammer plugin;
 	
 	private CommonPacket jammerPacket;
 	private DataWatcher dw;
-	private JamMode mode;
 	private int nextId;
 
 	private int radius;
@@ -32,13 +29,13 @@ public class JammerPacket extends AsyncTask {
 	private final int py;
 	private final int pz;
 	
-	public JammerPacket(Player p, int radius, int spread, JamMode mode, String[] names) {
+	public JammerPacket(Player p, int radius, int spread, String[] names) {
 		super("RadarJammer - " + p.getName(), Thread.MIN_PRIORITY);
 		
 		this.plugin = RadarJammer.getInstance();
 		
 		dw = new DataWatcher();
-		dw.set(0, mode.getByte());
+		dw.set(0, (byte) 0x20);
 		dw.set(6, (float) RandomUtils.nextInt(20 - 4) + 4);
 		dw.set(12, (int) 0);
 		
@@ -49,12 +46,11 @@ public class JammerPacket extends AsyncTask {
 		
 		this.radius = radius;
 		this.spread = spread;
-		this.mode = mode;
 		this.names = names;		
 		
 		Location pLoc = p.getLocation();
 		px = (int) pLoc.getX();
-		py = (int) pLoc.getY() + 40;
+		py = (int) pLoc.getY();
 		pz = (int) pLoc.getZ();
 		
 	}
@@ -65,8 +61,8 @@ public class JammerPacket extends AsyncTask {
 			for (int x = px - radius; x < (px + (radius)); x = x + spread){
 				for (int z = pz - radius; z < (pz + (radius)); z = z + spread){
 					
-					//Each jammer has random height, from 0 - (player Y + 40)
-					height = (int) ((mode == JamMode.CROUCHED)? -2 : Math.floor(RandomUtils.nextInt((py) - 10) + 10));
+					int low = py - 30, high = py + 30;
+					height = (int) Math.floor(RandomUtils.nextInt(high - low) + low);
 					//Random actual player names, from players on the server
 					String random = names[RandomUtils.nextInt(names.length)];
 					
@@ -74,9 +70,9 @@ public class JammerPacket extends AsyncTask {
 					
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.entityId, ++nextId);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.profile, random);
-					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.x, (int) (x + RandomUtils.nextInt(2)) * 32);
+					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.x, (int) x * 32);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.y, (int) height * 32);
-					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.z, (int) (z + RandomUtils.nextInt(2)) * 32);
+					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.z, (int) z * 32);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.dataWatcher, dw);
 				 
 					PacketUtil.sendPacket(p, jammerPacket, false);

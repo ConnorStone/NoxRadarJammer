@@ -20,7 +20,6 @@ import com.bergerkiller.bukkit.common.config.FileConfiguration;
 import com.bergerkiller.bukkit.common.metrics.Metrics;
 import com.dsh105.holoapi.HoloAPI;
 import com.noxpvp.core.NoxCore;
-import com.noxpvp.radarjammer.Jammer.JamMode;
 
 public class RadarJammer extends PluginBase{
 	
@@ -35,8 +34,7 @@ public class RadarJammer extends PluginBase{
 	//Config nodes
 	public final static String NODE_RADIUS = "jammer.radius";
 	public final static String NODE_SPREAD = "jammer.spread";
-	public final static String NODE_MODE = "jammer.mode";
-	public final static String NODE_PER_BLOCK_UPDATE = "jammer.per-block-update";
+	public final static String NODE_MOVEMENT_TIMER = "jammer.update-period";
 	
 	//Commands
 	public final static List<String> COMMAND_RADAR = Arrays.asList("radarjammer", "rj", "jammer", "radar");
@@ -67,9 +65,10 @@ public class RadarJammer extends PluginBase{
 	
 	private static FileConfiguration config;
 	private RadarListener radarListener;
+	private AsyncUpdateJamTimer updateTimer;
 	private Jammer jammer;
 	
-	private boolean perBlockUpdate;
+	private int asyncPeriod;
 	
 	public static RadarJammer getInstance(){
 		return instance;
@@ -89,12 +88,9 @@ public class RadarJammer extends PluginBase{
 			
 			config.setHeader(NODE_SPREAD, "MAX: " + Jammer.maxSpread + " MIN: " + Jammer.minSpread + ". The distance each jammer is from one another. ie: higher spread = less jammers");
 			config.set(NODE_SPREAD, 8);
-
-			config.setHeader(NODE_MODE, "Modes: " + JamMode.INVISIBLE.name() + ", " + JamMode.CROUCHED.name() + ". Note: crouched mode will force jammers at Y -2 and will only be useful for combating minimaps at low levels");
-			config.set(NODE_MODE, JamMode.INVISIBLE.name());
 			
-			config.setHeader(NODE_PER_BLOCK_UPDATE, "Should we update the fake entity every time a player moves 1 block?");
-			config.set(NODE_PER_BLOCK_UPDATE, Boolean.FALSE);
+			config.setHeader(NODE_MOVEMENT_TIMER, "MIN: " + AsyncUpdateJamTimer.minPeriod + ". The amount of time in second between checks for player movement");
+			config.set(NODE_MOVEMENT_TIMER, 4);
 			
 			config.save();
 		}
@@ -102,8 +98,16 @@ public class RadarJammer extends PluginBase{
 		return config;
 	}
 	
+	public int getMinimumLibVersion() {
+		return Common.VERSION;
+	}
+	
 	public Jammer getJammer(){
 		return this.jammer;
+	}
+	
+	public AsyncUpdateJamTimer getUpdateJamTimer() {
+		return this.updateTimer;
 	}
 
 	@Override
@@ -127,9 +131,9 @@ public class RadarJammer extends PluginBase{
 		pm.addPermission(new Permission(PERM_EXEMPT, "Makes the player exempt from radar jamming", PermissionDefault.OP));
 		pm.addPermission(new Permission(PERM_RELOAD, "Allows the player to reload the plugin", PermissionDefault.OP));
 		
-		perBlockUpdate = getRadarConfig().get(NODE_PER_BLOCK_UPDATE, Boolean.class, Boolean.FALSE);
+		asyncPeriod = getRadarConfig().get(NODE_MOVEMENT_TIMER, Integer.class, 6);
 		
-		radarListener = new RadarListener(this, perBlockUpdate);
+		radarListener = new RadarListener(this);
 		jammer = new Jammer(this);
 		
 		{
@@ -145,6 +149,10 @@ public class RadarJammer extends PluginBase{
 		
 		Metrics.initialize(this);
 		//TODO cool graphs
+		
+		try {
+			updateTimer = (AsyncUpdateJamTimer) new AsyncUpdateJamTimer(getInstance(), asyncPeriod).start(true);
+		} catch (Exception e) {}
 	}
 
 	private void setInstance(RadarJammer radarJammer) {
@@ -156,18 +164,17 @@ public class RadarJammer extends PluginBase{
 	public void reloadConfig() {
 		config.load();
 		
-		this.perBlockUpdate = getRadarConfig().get(NODE_PER_BLOCK_UPDATE, Boolean.class);
+		this.asyncPeriod = getRadarConfig().get(NODE_MOVEMENT_TIMER, Integer.class, 4);
 		
-		jammer.unJamAll();
+		jammer = null;
 		jammer = new Jammer(this);
 		
 		HandlerList.unregisterAll(radarListener);
 		radarListener = null;
-		radarListener = new RadarListener(getInstance(), perBlockUpdate);
-	}
-
-	public int getMinimumLibVersion() {
-		return Common.VERSION;
+		radarListener = new RadarListener(getInstance());
+		
+		this.updateTimer.stop();
+		this.updateTimer = (AsyncUpdateJamTimer) new AsyncUpdateJamTimer(getInstance(), asyncPeriod).start(true);
 	}
 	
 	public void sendHelpMessage(CommandSender sender){
@@ -181,6 +188,8 @@ public class RadarJammer extends PluginBase{
 			log(Level.INFO, PLUGIN_TAG + ": These are the available commands");
 			log(Level.INFO, PLUGIN_TAG + ": /" + COMMAND_RADAR.toString() + " " + ARG_HELP.toString());
 			log(Level.INFO, PLUGIN_TAG + ":         Shows this message");
+			log(Level.INFO, PLUGIN_TAG + ": /" + COMMAND_RADAR.toString() + " " + ARG_VERSION.toString());
+			log(Level.INFO, PLUGIN_TAG + ":         Checks the plugin version");
 			log(Level.INFO, PLUGIN_TAG + ": /" + COMMAND_RADAR.toString() + " " + ARG_RELOAD.toString());
 			log(Level.INFO, PLUGIN_TAG + ":         Reloads the config");
 		}
@@ -196,6 +205,11 @@ public class RadarJammer extends PluginBase{
 			String arg = args[0];
 			
 			if (ARG_RELOAD.contains(arg)){
+				if (!sender.hasPermission(PERM_RELOAD)) {
+					sender.sendMessage(PLUGIN_TAG + ChatColor.RED + " : You don't have permission -> " + PERM_RELOAD);
+					return true;
+				}
+					
 				this.reloadConfig();
 				sender.sendMessage(PLUGIN_TAG + ChatColor.GREEN + ": Reloaded");
 				

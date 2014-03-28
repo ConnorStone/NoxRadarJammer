@@ -2,16 +2,14 @@ package com.noxpvp.radarjammer;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import com.bergerkiller.bukkit.common.config.FileConfiguration;
-import com.bergerkiller.bukkit.common.protocol.CommonPacket;
-import com.bergerkiller.bukkit.common.protocol.PacketType;
-import com.bergerkiller.bukkit.common.utils.PacketUtil;
 import com.dsh105.holoapi.util.TagIdGenerator;
 
 public class Jammer{
@@ -20,36 +18,17 @@ public class Jammer{
 
 	public static int startId = 0;
 	
-	private RadarJammer plugin;
-	private List<String> jamming;
+	private ConcurrentHashMap<String, Vector> jamming;
+	public Callable<List<Player>> getUpdatedLocPlayers;
 	
 	private int radius, spread;
-	private JamMode mode;
-
-	public enum JamMode{
-		
-		INVISIBLE((byte) 0x20),
-		CROUCHED((byte) 0x02);
-		
-		JamMode(byte bit){
-			this.bit = bit;
-		}
-		
-		byte bit;
-		
-		byte getByte(){
-			return bit;
-		}
-	}
 	
 	public Jammer(RadarJammer plugin) {
 		
-		this.plugin = plugin;
-		this.jamming = new ArrayList<String>();
+		this.jamming = new ConcurrentHashMap<String, Vector>();
 		
 		FileConfiguration config = plugin.getRadarConfig();
 		
-		this.mode = JamMode.valueOf(config.get(RadarJammer.NODE_MODE, String.class, JamMode.INVISIBLE.name()));
 		this.radius = config.get(RadarJammer.NODE_RADIUS, Integer.class, 40);
 		this.spread = config.get(RadarJammer.NODE_SPREAD, Integer.class, 8);
 		
@@ -66,41 +45,84 @@ public class Jammer{
 			else if (RadarJammer.isNoxCoreActive())
 				startId = com.noxpvp.core.packet.PacketUtil.getNewEntityId(500);
 			else
-				startId = Short.MAX_VALUE;
+				startId = Short.MAX_VALUE + 20000;//This will still most likely be compatible with other entity id plugins like holograms, even if its not holoapi
 		}
 		
 		for (Player p : Bukkit.getOnlinePlayers()){
 			if (p.hasPermission(RadarJammer.PERM_EXEMPT))
 				continue;
 			
-			String name = p.getName();
-			
-			if (!jamming.contains(name))
-				jamming.add(name);
-			
+			jamming.putIfAbsent(p.getName(), p.getLocation().toVector());
 			jamFullRad(p);
 				
 		}
 		
+		this.getUpdatedLocPlayers = new Callable<List<Player>>() {
+			
+			public List<Player> call() throws Exception {
+				return updateLocations();
+			}
+		};
+		
 	}
 	
-	public void unJamAll(){
+	public int getRadius() {
+		return this.radius;
+	}
+	
+	public int getSpread() {
+		return this.spread;
+	}
+	
+	
+	private List<Player> updateLocations() {
+		List<Player> toUpdate = new ArrayList<Player>();
+		
+		for (Player p : Bukkit.getOnlinePlayers()) {
+			String name = p.getName();
+			if (!jamming.containsKey(name))
+				continue;
+			
+			Vector old = jamming.get(name);
+			Vector cur = p.getLocation().toVector();
+			
+			if (old.distance(cur) < 10)//Must move 10 blocks from last known location for an update
+				continue;
+			
+			jamming.remove(name);
+			jamming.put(name, cur);
+			
+			toUpdate.add(p);
+		}
+		
+		return toUpdate.isEmpty()? null : toUpdate;
+	}
+	
+/*	public void unJamAll(){
 		int amount = (((radius * 2) / spread) * ((radius * 2) / spread));
-		int[] ids = new int[amount + 5];
+		int[] ids = new int[amount];
 		
 		try {
 			for (int i = startId, r = 0; i < (amount + startId); i++, r++)
 				ids[r] = i;
 			
-			CommonPacket destroyer = new CommonPacket(PacketType.OUT_ENTITY_DESTROY);
-			destroyer.write(PacketType.OUT_ENTITY_DESTROY.entityIds, ids);
+			for (int i = 0; i < ids.length + 20; i = i + 20) {
+				int[] temp = new int[20];
+				for (int j = i; j < temp.length; j++) {
+					temp[j] = ids[j];
+					
+				}
+				
+				CommonPacket destroyer = new CommonPacket(PacketType.OUT_ENTITY_DESTROY);
+				destroyer.write(PacketType.OUT_ENTITY_DESTROY.entityIds, ids);
+				PacketUtil.broadcastPacket(destroyer, false);
+			}
 			
-			PacketUtil.broadcastPacket(destroyer, false);
 		} catch (Exception e) {
 			plugin.getLogger().logp(Level.SEVERE, "Jammer.java", "unJamAll()", "uh oh...");
 			e.printStackTrace();
 		}
-	}
+	}*/
 	
 	public void unJam(String name){
 		if (jamming.contains(name))
@@ -108,10 +130,13 @@ public class Jammer{
 	}
 	
 	public void addJam(String name){
-		if (!jamming.contains(name))
-			jamming.add(name);
+		Player p = Bukkit.getPlayer(name);
+		if (p == null)
+			return;
 		
-		jamFullRad(Bukkit.getPlayer(name));
+		jamming.put(name, p.getLocation().toVector());
+		
+		jamFullRad(p);
 	}
 	
 	public void jamFullRad(Player p){
@@ -119,11 +144,11 @@ public class Jammer{
 		
 		if (!p.isOnline()){
 			
-			if (jamming.contains(name))
+			if (jamming.containsKey(name))
 				jamming.remove(name);
 			
 			return;
-		} else if (!jamming.contains(name))
+		} else if (!jamming.containsKey(name))
 			return;
 		
 		{
@@ -136,7 +161,7 @@ public class Jammer{
 				
 				names[i] = players[i].getName();
 			}
-			new JammerPacket(p, radius, spread, mode, names).start();
+			new JammerPacket(p, radius, spread, names).start();
 		
 		}
 		
@@ -148,7 +173,7 @@ public class Jammer{
 		if (!p.isOnline() || !jamming.contains(name))
 			return;
 
-		new JammerUpdatePacket(p, dif, radius, spread).start();
+		new JammerUpdatePacket(p).start();
 			
 	}
 
