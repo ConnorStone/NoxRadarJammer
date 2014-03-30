@@ -16,7 +16,6 @@ import com.noxpvp.radarjammer.RadarJammer;
 public class JammerPLPacket extends BukkitRunnable {
 	private RadarJammer plugin;
 	
-	private WrapperPlayServerNamedEntitySpawn plJammerPacketWrapper;
 	private WrappedDataWatcher watcher;
 	private ProtocolManager pm;
 	
@@ -67,7 +66,7 @@ public class JammerPLPacket extends BukkitRunnable {
 					
 					String random = names[RandomUtils.nextInt(names.length)];
 					
-					plJammerPacketWrapper = new WrapperPlayServerNamedEntitySpawn();
+					WrapperPlayServerNamedEntitySpawn plJammerPacketWrapper = new WrapperPlayServerNamedEntitySpawn();
 					
 					plJammerPacketWrapper.setEntityID(++nextId);
 					plJammerPacketWrapper.setPlayerUUID("notarealuuid");

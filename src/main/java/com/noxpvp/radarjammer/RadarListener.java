@@ -1,21 +1,40 @@
 package com.noxpvp.radarjammer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
-public class RadarListener implements Listener {
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.events.PacketEvent;
+import com.noxpvp.radarjammer.packet.UpdateProjectilePLPacket;
+
+public class RadarListener extends PacketAdapter implements Listener {
 
 	private RadarJammer plugin;
+	private ProtocolManager pm;
 	
-	public RadarListener(RadarJammer plugin) {
+	private List<Integer> updating;
+	
+	public RadarListener(RadarJammer plugin, ProtocolManager pm) {
+		super(plugin, PacketType.Play.Server.SPAWN_ENTITY);
+		
 		this.plugin = plugin;
+		this.pm = pm;
+		
+		this.updating = new ArrayList<Integer>();
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -52,10 +71,18 @@ public class RadarListener implements Listener {
 				}
 			}, 5);
 	}
-	
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onProjectileShoot(ProjectileLaunchEvent event) {
+
+	@Override
+	public void onPacketSending(PacketEvent arg0) {
+		PacketContainer packet = arg0.getPacket();
+
+		Entity e = packet.getEntityModifier(arg0).read(0);
+		if (e != null && e instanceof Projectile && !updating.contains(e.getEntityId())) {
+			updating.add(e.getEntityId());
+			new UpdateProjectilePLPacket(pm, (Projectile) packet.getEntityModifier(arg0).read(0)).runTaskTimer(plugin, 0, 3);
+		}
 		
+		return;
 	}
 
 }

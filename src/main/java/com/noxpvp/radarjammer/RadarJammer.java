@@ -21,6 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.bergerkiller.bukkit.common.internal.CommonPlugin;
 import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.dsh105.holoapi.HoloAPI;
 import com.noxpvp.core.NoxCore;
 
@@ -157,7 +158,9 @@ public class RadarJammer extends JavaPlugin {
 		}
 
 		asyncPeriod = getRadarConfig().getInt(NODE_MOVEMENT_TIMER, 6);
-		radarListener = new RadarListener(this);
+		
+		ProtocolManager plM = ProtocolLibrary.getProtocolManager();
+		plM.addPacketListener(radarListener = new RadarListener(this, plM));
 		
 		pm.registerEvents(radarListener, instance);
 		jammer = new Jammer(this, asyncPeriod);
@@ -191,9 +194,14 @@ public class RadarJammer extends JavaPlugin {
 		jammer = null;
 		jammer = new Jammer(this, asyncPeriod);
 		
+		ProtocolManager pm = ProtocolLibrary.getProtocolManager();
+		
 		HandlerList.unregisterAll(radarListener);
+		pm.removePacketListener(radarListener);
+		
 		radarListener = null;
-		Bukkit.getPluginManager().registerEvents((radarListener = new RadarListener(this)), instance);
+		Bukkit.getPluginManager().registerEvents((radarListener = new RadarListener(this, pm)), instance);
+		pm.addPacketListener(radarListener);
 		
 		if (updateTimer != null)
 			this.updateTimer.cancel();
