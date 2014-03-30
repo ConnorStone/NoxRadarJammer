@@ -3,52 +3,97 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.noxpvp</groupId>
 	<artifactId>NoxRadarJammer</artifactId>
-	<version>1.2.4 Beta</version>
+	<version>1.2.5 Beta</version>
 	<name>RadarJammer.</name>
 	<description>Attempts to stop radar and tracer hacking on minecraft servers</description>
 	<repositories>
+	
+		<!-- MCStats repo -->	
+		<repository>
+			<id>Plugin Metrics</id>
+			<url>http://repo.mcstats.org/content/repositories/public</url>
+		</repository>
+	
+		<!-- Vault repo -->
 		<repository>
 			<id>vault-repo</id>
 			<url>http://ci.herocraftonline.com/plugin/repository/everything</url>
 		</repository>
+	
+		<!-- HoloAPI repo -->
 		<repository>
 			<id>hawk-repo</id>
 			<url>http://ci.hawkfalcon.com/plugin/repository/everything/</url>
 		</repository>
+	
+		<!-- Bukkit repo -->
 		<repository>
 			<id>bukkit-repo</id>
 			<url>http://repo.bukkit.org/content/groups/public/</url>
 		</repository>
+	
+		<!-- BKCommonLib repo -->
 		<repository>
 			<id>dj-tcraft repository</id>
 			<url>http://ci.dj-tcraft.nl/plugin/repository/everything/</url>
+		</repository>
+		
+		<!-- ProtocolLib repo -->
+		<repository>
+			<id>comphenix-rep</id>
+			<name>Comphenix Repository</name>
+			<url>http://repo.comphenix.net/content/groups/public</url>
 		</repository>
 	</repositories>
 	<properties>
 		<main>com.noxpvp.radarjammer.RadarJammer</main>
 	</properties>
 	<dependencies>
+	
+		<!-- MCStats depend -->
+		<dependency>
+			<groupId>org.mcstats.bukkit</groupId>
+			<artifactId>metrics</artifactId>
+			<version>R6</version>
+			<scope>compile</scope>
+		</dependency>
+		
+		<!-- Vault depend -->
 		<dependency>
 			<groupId>net.milkbowl.vault</groupId>
 			<artifactId>Vault</artifactId>
 			<version>1.2.30</version>
 			<scope>provided</scope>
 		</dependency>
+		
+		<!-- HoloAPI compat -->
 		<dependency>
 			<groupId>com.dsh105</groupId>
 			<artifactId>HoloAPI</artifactId>
 			<version>1.0.7-SNAPSHOT</version>
 		</dependency>
+		
+		<!-- BKCommonLib Depend-->
 		<dependency>
 			<groupId>com.bergerkiller.bukkit</groupId>
 			<artifactId>BKCommonLib</artifactId>
 			<version>1.57-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
+		
+		<!-- Bukkit...duh -->
 		<dependency>
 			<groupId>org.bukkit</groupId>
 			<artifactId>bukkit</artifactId>
 			<version>1.7.2-R0.3</version>
+		</dependency>
+		
+		<!-- ProtocolLib Depend -->
+		<dependency>
+			<groupId>com.comphenix.protocol</groupId>
+			<artifactId>ProtocolLib</artifactId>
+			<version>3.2.0</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	<build>

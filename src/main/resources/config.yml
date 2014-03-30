@@ -1,0 +1,19 @@
+#   _   _            ______          _            ___                                     
+#  | \ | |           | ___ \        | |          |_  |                                    
+#  |  \| | _____  __ | |_/ /__ _  __| | __ _ _ __  | | __ _ _ __ ___  _ __ ___   ___ _ __ 
+#  | . ` |/ _ \ \/ / |    // _` |/ _` |/ _` | '__| | |/ _` | '_ ` _ \| '_ ` _ \ / _ \ '__|
+#  | |\  | (_) >  <  | |\ \ (_| | (_| | (_| | |/\__/ / (_| | | | | | | | | | | |  __/ |   
+#  \_| \_/\___/_/\_\ \_| \_\__,_|\__,_|\__,_|_|\____/ \__,_|_| |_| |_|_| |_| |_|\___|_|   
+#                                                                                         
+#       
+#> Nox RadarJammer || Authors: Connor Stone AKA bbcsto13, Chris krier AKA coaster3000
+#> http://dev.bukkit.org/bukkit-plugins/radarjammer/ 
+#>  http://Noxpvp.com/
+jammer:
+  # MAX: 64. The square radius around the player to add jamming entitys
+  radius: 40
+  # MAX: 20 MIN: 2. The distance each jammer is from one another. ie: higher spread = less jammers
+  spread: 6
+  # MIN: 4. The amount of time in second between checks for player movement
+  update-period: 4
+

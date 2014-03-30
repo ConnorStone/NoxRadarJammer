@@ -1,30 +1,34 @@
 package com.noxpvp.radarjammer;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import com.bergerkiller.bukkit.common.Common;
-import com.bergerkiller.bukkit.common.PluginBase;
-import com.bergerkiller.bukkit.common.config.FileConfiguration;
-import com.bergerkiller.bukkit.common.metrics.Metrics;
+import com.bergerkiller.bukkit.common.internal.CommonPlugin;
+import com.comphenix.protocol.ProtocolLibrary;
 import com.dsh105.holoapi.HoloAPI;
 import com.noxpvp.core.NoxCore;
 
-public class RadarJammer extends PluginBase{
+public class RadarJammer extends JavaPlugin {
 	
 	//Tag
 	public final static String PLUGIN_TAG = ChatColor.RED + "Nox" + ChatColor.GOLD + "RadarJammer";
+	public final static String VERSION = "v1.2.5";
 
 	//Permissions
 	public final static String PERM_NODE = "radarjammer";
@@ -50,6 +54,14 @@ public class RadarJammer extends PluginBase{
 		return noxCore != null && Bukkit.getPluginManager().isPluginEnabled(noxCore);
 	}
 	
+	public static boolean isProtocolLibActive() {
+		return protocolLib != null && Bukkit.getPluginManager().isPluginEnabled(protocolLib);
+	}
+	
+	public static  boolean isBkCommonLibActive() {
+		return bkCommonLib != null && Bukkit.getPluginManager().isPluginEnabled(bkCommonLib);
+	}
+	
 	public final HoloAPI getHoloAPI() {
 		return holoAPI;
 	}
@@ -58,12 +70,19 @@ public class RadarJammer extends PluginBase{
 		return noxCore;
 	}
 	
+	public final ProtocolLibrary getPL() {
+		return protocolLib;
+	}
+	
 	private static RadarJammer instance;
 	
 	private static HoloAPI holoAPI;
 	private static NoxCore noxCore;
+	private static ProtocolLibrary protocolLib;
+	private static CommonPlugin bkCommonLib;
 	
-	private static FileConfiguration config;
+	private FileConfiguration config;
+	
 	private RadarListener radarListener;
 	private AsyncUpdateJamTimer updateTimer;
 	private Jammer jammer;
@@ -76,30 +95,11 @@ public class RadarJammer extends PluginBase{
 	
 	public FileConfiguration getRadarConfig(){
 		if (config == null)
-			config = new FileConfiguration(this, "config.yml");
+			config = getConfig();
 		
-		if (config.exists()) {
-			config.load();
-		} else {
-			config.setHeader("Nox RadarJammer || Authors: Connor Stone AKA bbcsto13, Chris krier AKA coaster3000\nhttp://dev.bukkit.org/bukkit-plugins/radarjammer/ \n http://Noxpvp.com/");
-			
-			config.setHeader(NODE_RADIUS, "MAX: " + Jammer.maxSize + ". The square radius around the player to add jamming entitys");
-			config.set(NODE_RADIUS, 40);
-			
-			config.setHeader(NODE_SPREAD, "MAX: " + Jammer.maxSpread + " MIN: " + Jammer.minSpread + ". The distance each jammer is from one another. ie: higher spread = less jammers");
-			config.set(NODE_SPREAD, 8);
-			
-			config.setHeader(NODE_MOVEMENT_TIMER, "MIN: " + AsyncUpdateJamTimer.minPeriod + ". The amount of time in second between checks for player movement");
-			config.set(NODE_MOVEMENT_TIMER, 4);
-			
-			config.save();
-		}
+		saveDefaultConfig();
 		
 		return config;
-	}
-	
-	public int getMinimumLibVersion() {
-		return Common.VERSION;
 	}
 	
 	public Jammer getJammer(){
@@ -111,16 +111,18 @@ public class RadarJammer extends PluginBase{
 	}
 
 	@Override
-	public void disable() {
-		config.save();
+	public void onDisable() {
+		try {
+			config.save(getDataFolder());
+		} catch (IOException e) { e.printStackTrace(); }
 		
 	}
 
 	@Override
-	public void enable() {
+	public void onEnable() {
 		if (instance != null)
 		{
-			log(Level.SEVERE, "This plugin already has an instance running! Disabling second run.");
+			getLogger().log(Level.SEVERE, "This plugin already has an instance running! Disabling second run.");
 			setEnabled(false);
 			
 			return;
@@ -130,11 +132,6 @@ public class RadarJammer extends PluginBase{
 		PluginManager pm = Bukkit.getPluginManager();
 		pm.addPermission(new Permission(PERM_EXEMPT, "Makes the player exempt from radar jamming", PermissionDefault.OP));
 		pm.addPermission(new Permission(PERM_RELOAD, "Allows the player to reload the plugin", PermissionDefault.OP));
-		
-		asyncPeriod = getRadarConfig().get(NODE_MOVEMENT_TIMER, Integer.class, 6);
-		
-		radarListener = new RadarListener(this);
-		jammer = new Jammer(this);
 		
 		{
 			Plugin plugin = pm.getPlugin("HoloAPI");
@@ -146,12 +143,37 @@ public class RadarJammer extends PluginBase{
 			if (plugin != null && plugin instanceof NoxCore)
 				noxCore = (NoxCore) plugin;
 		}
+		{
+			Plugin plugin = pm.getPlugin("ProtocolLib");
+			if (plugin != null && plugin instanceof ProtocolLibrary) {
+				protocolLib = (ProtocolLibrary) plugin;
+			}
+		}
+		{
+			Plugin plugin = pm.getPlugin("BKCommonLib");
+			if (plugin != null && plugin instanceof CommonPlugin) {
+				bkCommonLib = (CommonPlugin) plugin;
+			}
+		}
+
+		asyncPeriod = getRadarConfig().getInt(NODE_MOVEMENT_TIMER, 6);
+		radarListener = new RadarListener(this);
 		
-		Metrics.initialize(this);
+		pm.registerEvents(radarListener, instance);
+		jammer = new Jammer(this, asyncPeriod);
+		
+		
+		try {
+		    Metrics metrics = new Metrics(this);
+		    metrics.start();
+		} catch (IOException e) {
+			getLogger().log(Level.WARNING, "You can probably ignore this...", e);
+		}
 		//TODO cool graphs
 		
 		try {
-			updateTimer = (AsyncUpdateJamTimer) new AsyncUpdateJamTimer(getInstance(), asyncPeriod).start(true);
+			updateTimer = new AsyncUpdateJamTimer(getInstance());
+			updateTimer.runTaskTimerAsynchronously(instance, 20, asyncPeriod * 20);
 		} catch (Exception e) {}
 	}
 
@@ -160,21 +182,24 @@ public class RadarJammer extends PluginBase{
 			RadarJammer.instance = radarJammer;
 	}
 	
-	@Override
-	public void reloadConfig() {
-		config.load();
+	public void reloadRadarConfig() {
+		reloadConfig();
+		this.config = getConfig();
 		
-		this.asyncPeriod = getRadarConfig().get(NODE_MOVEMENT_TIMER, Integer.class, 4);
+		this.asyncPeriod = getRadarConfig().getInt(NODE_MOVEMENT_TIMER, 4);
 		
 		jammer = null;
-		jammer = new Jammer(this);
+		jammer = new Jammer(this, asyncPeriod);
 		
 		HandlerList.unregisterAll(radarListener);
 		radarListener = null;
-		radarListener = new RadarListener(getInstance());
+		Bukkit.getPluginManager().registerEvents((radarListener = new RadarListener(this)), instance);
 		
-		this.updateTimer.stop();
-		this.updateTimer = (AsyncUpdateJamTimer) new AsyncUpdateJamTimer(getInstance(), asyncPeriod).start(true);
+		if (updateTimer != null)
+			this.updateTimer.cancel();
+		
+		this.updateTimer = new AsyncUpdateJamTimer(getInstance());
+		this.updateTimer.runTaskTimerAsynchronously(getInstance(), 0, asyncPeriod * 20);
 	}
 	
 	public void sendHelpMessage(CommandSender sender){
@@ -185,19 +210,21 @@ public class RadarJammer extends PluginBase{
 			sender.sendMessage(PLUGIN_TAG + ChatColor.AQUA + ": /" + COMMAND_RADAR.toString() + " " + ARG_RELOAD.toString());
 			sender.sendMessage(PLUGIN_TAG + ChatColor.AQUA + ":" + ChatColor.GREEN + "         Reloads the config");
 		} else {
-			log(Level.INFO, PLUGIN_TAG + ": These are the available commands");
-			log(Level.INFO, PLUGIN_TAG + ": /" + COMMAND_RADAR.toString() + " " + ARG_HELP.toString());
-			log(Level.INFO, PLUGIN_TAG + ":         Shows this message");
-			log(Level.INFO, PLUGIN_TAG + ": /" + COMMAND_RADAR.toString() + " " + ARG_VERSION.toString());
-			log(Level.INFO, PLUGIN_TAG + ":         Checks the plugin version");
-			log(Level.INFO, PLUGIN_TAG + ": /" + COMMAND_RADAR.toString() + " " + ARG_RELOAD.toString());
-			log(Level.INFO, PLUGIN_TAG + ":         Reloads the config");
+			Logger log = getLogger();
+			
+			log.log(Level.INFO, PLUGIN_TAG + ": These are the available commands");
+			log.log(Level.INFO, PLUGIN_TAG + ": /" + COMMAND_RADAR.toString() + " " + ARG_HELP.toString());
+			log.log(Level.INFO, PLUGIN_TAG + ":         Shows this message");
+			log.log(Level.INFO, PLUGIN_TAG + ": /" + COMMAND_RADAR.toString() + " " + ARG_VERSION.toString());
+			log.log(Level.INFO, PLUGIN_TAG + ":         Checks the plugin version");
+			log.log(Level.INFO, PLUGIN_TAG + ": /" + COMMAND_RADAR.toString() + " " + ARG_RELOAD.toString());
+			log.log(Level.INFO, PLUGIN_TAG + ":         Reloads the config");
 		}
 	}
 
 	@Override
-	public boolean command(CommandSender sender, String command, String[] args) {
-		if (COMMAND_RADAR.contains(command.toLowerCase())){
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		if (COMMAND_RADAR.contains(label.toLowerCase())){
 			if (args == null || args.length < 1){
 				sendHelpMessage(sender);
 				return true;
@@ -210,7 +237,7 @@ public class RadarJammer extends PluginBase{
 					return true;
 				}
 					
-				this.reloadConfig();
+				this.reloadRadarConfig();
 				sender.sendMessage(PLUGIN_TAG + ChatColor.GREEN + ": Reloaded");
 				
 				return true;
@@ -219,7 +246,7 @@ public class RadarJammer extends PluginBase{
 				
 				return true;
 			} else if (ARG_VERSION.contains(arg)) {
-				sender.sendMessage(PLUGIN_TAG + ChatColor.GREEN + ": " + getVersion());
+				sender.sendMessage(PLUGIN_TAG + ChatColor.GREEN + ": " + VERSION);
 				
 				return true;
 			}

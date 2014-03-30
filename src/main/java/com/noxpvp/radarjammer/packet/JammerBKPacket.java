@@ -1,22 +1,25 @@
-package com.noxpvp.radarjammer;
+package com.noxpvp.radarjammer.packet;
 
 import java.util.logging.Level;
 
 import org.apache.commons.lang.math.RandomUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
-import com.bergerkiller.bukkit.common.AsyncTask;
 import com.bergerkiller.bukkit.common.protocol.CommonPacket;
 import com.bergerkiller.bukkit.common.protocol.PacketType;
 import com.bergerkiller.bukkit.common.utils.PacketUtil;
 import com.bergerkiller.bukkit.common.wrappers.DataWatcher;
+import com.noxpvp.radarjammer.Jammer;
+import com.noxpvp.radarjammer.RadarJammer;
 
-public class JammerPacket extends AsyncTask {
-	RadarJammer plugin;
+public class JammerBKPacket extends BukkitRunnable {
+	private RadarJammer plugin;
 	
 	private CommonPacket jammerPacket;
 	private DataWatcher dw;
+	
 	private int nextId;
 
 	private int radius;
@@ -29,8 +32,7 @@ public class JammerPacket extends AsyncTask {
 	private final int py;
 	private final int pz;
 	
-	public JammerPacket(Player p, int radius, int spread, String[] names) {
-		super("RadarJammer - " + p.getName(), Thread.MIN_PRIORITY);
+	public JammerBKPacket(Player p, int radius, int spread, String[] names) {
 		
 		this.plugin = RadarJammer.getInstance();
 		
@@ -38,9 +40,7 @@ public class JammerPacket extends AsyncTask {
 		dw.set(0, (byte) 0x20);
 		dw.set(6, (float) RandomUtils.nextInt(20 - 4) + 4);
 		dw.set(12, (int) 0);
-		
-		jammerPacket = new CommonPacket(PacketType.OUT_ENTITY_SPAWN_NAMED);
-		
+
 		this.p = p;
 		this.nextId = Jammer.startId;
 		
@@ -56,17 +56,17 @@ public class JammerPacket extends AsyncTask {
 	}
 
 	public void run() {
-		try {
-		
+		try {			
+			
 			for (int x = px - radius; x < (px + (radius)); x = x + spread){
 				for (int z = pz - radius; z < (pz + (radius)); z = z + spread){
-					
+
 					int low = py - 30, high = py + 30;
 					height = (int) Math.floor(RandomUtils.nextInt(high - low) + low);
-					//Random actual player names, from players on the server
+					
 					String random = names[RandomUtils.nextInt(names.length)];
 					
-					jammerPacket = new CommonPacket(PacketType.OUT_ENTITY_SPAWN_NAMED);
+					jammerPacket = new CommonPacket(com.bergerkiller.bukkit.common.protocol.PacketType.OUT_ENTITY_SPAWN_NAMED);
 					
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.entityId, ++nextId);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.profile, random);
@@ -74,9 +74,8 @@ public class JammerPacket extends AsyncTask {
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.y, (int) height * 32);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.z, (int) z * 32);
 					jammerPacket.write(PacketType.OUT_ENTITY_SPAWN_NAMED.dataWatcher, dw);
-				 
-					PacketUtil.sendPacket(p, jammerPacket, false);
 					
+					PacketUtil.sendPacket(p, jammerPacket, false);	
 				}
 			}
 		} catch (Exception e) {

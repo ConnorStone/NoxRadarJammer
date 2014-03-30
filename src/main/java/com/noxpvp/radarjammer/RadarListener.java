@@ -5,16 +5,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
-public class RadarListener implements Listener{
+public class RadarListener implements Listener {
 
 	private RadarJammer plugin;
 	
 	public RadarListener(RadarJammer plugin) {
-		Bukkit.getPluginManager().registerEvents(this, plugin);
-		
 		this.plugin = plugin;
 	}
 	
@@ -28,17 +28,34 @@ public class RadarListener implements Listener{
 		Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 			
 			public void run() {
-				p.sendMessage("§f======== §3 §6 §3 §6 §3 §6 §e §f========");				
+				p.sendMessage("§6Enabling the disabling of cheating things... §3 §6 §3 §6 §3 §6 §e ");				
+				plugin.getJammer().addJam(p);
 			}
 		}, 2);
 		
-		plugin.getJammer().addJam(p.getName());
 			
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerLogout(PlayerQuitEvent event){
 		plugin.getJammer().unJam(event.getPlayer().getName());
+	}
+	
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onRespawn(PlayerRespawnEvent event) {
+		final Player p;
+		if ((p = event.getPlayer()) != null)
+			Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+				public void run() {
+					plugin.getJammer().jamFullRad(p);
+				
+				}
+			}, 5);
+	}
+	
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onProjectileShoot(ProjectileLaunchEvent event) {
+		
 	}
 
 }

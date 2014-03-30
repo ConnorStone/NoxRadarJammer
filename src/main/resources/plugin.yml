@@ -3,8 +3,8 @@ version: ${project.version}
 author: bbcsto13
 authors: [Coaster3000, bbcsto13]
 main: ${main}
-depend: [BKCommonLib]
-softpend: [HoloAPI, NoxCore]
+depend: [ProtocolLib]
+softpend: [BKCommonLib, HoloAPI, NoxCore]
 website: http://www.noxpvp.com
 commands:
   radar:

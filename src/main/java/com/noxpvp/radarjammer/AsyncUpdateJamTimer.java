@@ -6,22 +6,24 @@ import java.util.concurrent.Future;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
-import com.bergerkiller.bukkit.common.AsyncTask;
+import com.noxpvp.radarjammer.packet.UpdateBKPacket;
+import com.noxpvp.radarjammer.packet.UpdatePLPacket;
 
-public class AsyncUpdateJamTimer extends AsyncTask {
+public class AsyncUpdateJamTimer extends BukkitRunnable {
 
 	public static final int minPeriod = 4;
 
-	private final int period;
 	private final RadarJammer plugin;
 	public List<String> toUpdate;
+
+	private boolean usePL;
 	
-	public AsyncUpdateJamTimer(RadarJammer plugin, int secondPeriod) {
-		super("NoxRadarJammer: " + AsyncUpdateJamTimer.class.getName());
+	public AsyncUpdateJamTimer(RadarJammer plugin) {
 		
-		this.period = secondPeriod * 1000;
 		this.plugin = plugin;
+		this.usePL = !RadarJammer.isBkCommonLibActive();
 	}
 	
 	public void run() {
@@ -29,15 +31,17 @@ public class AsyncUpdateJamTimer extends AsyncTask {
 		
 		try {
 			if (players.get() != null && !players.get().isEmpty())
-				for (Player p : players.get())
-					new JammerUpdatePacket(p).start();
+				if (usePL) {
+					for (Player p : players.get())
+						new UpdatePLPacket(p).runTaskAsynchronously(plugin);
+				} else {
+					for (Player p : players.get())
+						new UpdateBKPacket(p).runTaskAsynchronously(plugin);
+				}
 		}
 		catch (InterruptedException e) {}
 		catch (ExecutionException e) {}
 		catch (Exception e) {}
-		
-		if (!Bukkit.isPrimaryThread())
-			sleep(period);
 	}
 
 }
