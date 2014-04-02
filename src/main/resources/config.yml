@@ -16,4 +16,7 @@ jammer:
   spread: 6
   # MIN: 4. The amount of time in second between checks for player movement
   update-period: 4
-
+  # Should we prevent people with voxel map from using the radar?
+  stop-voxelmap-radar: true
+  # Should we prevent people with voxel map from using the cave map?
+  stop-voxelmap-cave: true

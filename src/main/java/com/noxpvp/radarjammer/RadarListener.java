@@ -25,14 +25,17 @@ public class RadarListener extends PacketAdapter implements Listener {
 
 	private RadarJammer plugin;
 	private ProtocolManager pm;
+	private String voxelMapStopper;
 	
 	private List<Integer> updating;
 	
-	public RadarListener(RadarJammer plugin, ProtocolManager pm) {
+	public RadarListener(RadarJammer plugin, ProtocolManager pm, boolean stopVoxelRadar, boolean stopVoxelCave) {
 		super(plugin, PacketType.Play.Server.SPAWN_ENTITY);
 		
 		this.plugin = plugin;
 		this.pm = pm;
+		
+		this.voxelMapStopper = new StringBuilder("§6Enabling the disabling of cheating things ...§r ").append(stopVoxelRadar? " §3 §6 §3 §6 §3 §6 §e " : "").append(stopVoxelCave? " §3 §6 §3 §6 §3 §6 §d " : "").toString();
 		
 		this.updating = new ArrayList<Integer>();
 	}
@@ -47,7 +50,7 @@ public class RadarListener extends PacketAdapter implements Listener {
 		Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 			
 			public void run() {
-				p.sendMessage("§6Enabling the disabling of cheating things... §3 §6 §3 §6 §3 §6 §e ");				
+				p.sendMessage(voxelMapStopper);			
 				plugin.getJammer().addJam(p);
 			}
 		}, 2);

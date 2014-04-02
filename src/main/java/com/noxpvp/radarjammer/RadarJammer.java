@@ -1,5 +1,6 @@
 package com.noxpvp.radarjammer;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +30,7 @@ public class RadarJammer extends JavaPlugin {
 	
 	//Tag
 	public final static String PLUGIN_TAG = ChatColor.RED + "Nox" + ChatColor.GOLD + "RadarJammer";
-	public final static String VERSION = "v1.2.5";
+	public final static String VERSION = "v1.2.7";
 
 	//Permissions
 	public final static String PERM_NODE = "radarjammer";
@@ -40,6 +41,8 @@ public class RadarJammer extends JavaPlugin {
 	public final static String NODE_RADIUS = "jammer.radius";
 	public final static String NODE_SPREAD = "jammer.spread";
 	public final static String NODE_MOVEMENT_TIMER = "jammer.update-period";
+	private final static String NODE_VOXELRADAR = "jammer.stop-voxelmap-radar";
+	private final static String NODE_VOXELCAVE = "jammer.stop-voxelmap-cave";
 	
 	//Commands
 	public final static List<String> COMMAND_RADAR = Arrays.asList("radarjammer", "rj", "jammer", "radar");
@@ -89,8 +92,10 @@ public class RadarJammer extends JavaPlugin {
 	private Jammer jammer;
 	
 	private int asyncPeriod;
+	private boolean stopVoxelRadar;
+	private boolean stopVoxelCave;
 	
-	public static RadarJammer getInstance(){
+	public static RadarJammer getInstance() {
 		return instance;
 	}
 	
@@ -114,8 +119,12 @@ public class RadarJammer extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		try {
-			config.save(getDataFolder());
-		} catch (IOException e) { e.printStackTrace(); }
+			File dataFolder = getDataFolder();
+			if (!dataFolder.exists())
+				dataFolder.createNewFile();
+			
+			config.save(dataFolder);
+		} catch (Exception e) { e.printStackTrace(); }
 		
 	}
 
@@ -158,9 +167,11 @@ public class RadarJammer extends JavaPlugin {
 		}
 
 		asyncPeriod = getRadarConfig().getInt(NODE_MOVEMENT_TIMER, 6);
+		stopVoxelRadar = getRadarConfig().getBoolean(NODE_VOXELRADAR, true);
+		stopVoxelCave = getRadarConfig().getBoolean(NODE_VOXELCAVE, true);		
 		
 		ProtocolManager plM = ProtocolLibrary.getProtocolManager();
-		plM.addPacketListener(radarListener = new RadarListener(this, plM));
+		plM.addPacketListener(radarListener = new RadarListener(this, plM, stopVoxelRadar, stopVoxelCave));
 		
 		pm.registerEvents(radarListener, instance);
 		jammer = new Jammer(this, asyncPeriod);
@@ -190,6 +201,8 @@ public class RadarJammer extends JavaPlugin {
 		this.config = getConfig();
 		
 		this.asyncPeriod = getRadarConfig().getInt(NODE_MOVEMENT_TIMER, 4);
+		this.stopVoxelRadar = getRadarConfig().getBoolean(NODE_VOXELRADAR, true);
+		this.stopVoxelCave = getRadarConfig().getBoolean(NODE_VOXELCAVE, true);
 		
 		jammer = null;
 		jammer = new Jammer(this, asyncPeriod);
@@ -200,7 +213,7 @@ public class RadarJammer extends JavaPlugin {
 		pm.removePacketListener(radarListener);
 		
 		radarListener = null;
-		Bukkit.getPluginManager().registerEvents((radarListener = new RadarListener(this, pm)), instance);
+		Bukkit.getPluginManager().registerEvents((radarListener = new RadarListener(this, pm, stopVoxelRadar, stopVoxelCave)), instance);
 		pm.addPacketListener(radarListener);
 		
 		if (updateTimer != null)
