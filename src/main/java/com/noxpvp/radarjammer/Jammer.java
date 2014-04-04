@@ -44,7 +44,7 @@ public class Jammer{
 			if (RadarJammer.isHoloAPIActive())
 				startId = TagIdGenerator.nextId(1000);
 			else if (RadarJammer.isNoxCoreActive())
-				startId = com.noxpvp.core.packet.PacketUtil.getNewEntityId(1000);
+				startId = com.noxpvp.core.packet.NoxPacketUtil.getNewEntityId(1000);
 			else
 				startId = Short.MAX_VALUE + 20000;//This will still most likely be compatible with other entity id plugins like holograms, even if its not holoapi
 		}
