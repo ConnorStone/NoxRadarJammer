@@ -18,8 +18,6 @@ public class UpdatePLPacket extends BukkitRunnable {
 	private WrapperPlayServerEntityTeleport plUpdatePacketWrapper;
 	private ProtocolManager pm;
 	
-	private int nextId;	
-	
 	private final Player p;
 	private final Location pLoc;
 
@@ -30,8 +28,6 @@ public class UpdatePLPacket extends BukkitRunnable {
 		
 		this.plugin = RadarJammer.getInstance();
 		this.pm = ProtocolLibrary.getProtocolManager();
-		
-		this.nextId = Jammer.startId;
 		
 		this.p = p;
 		this.pLoc = p.getLocation();
@@ -46,7 +42,7 @@ public class UpdatePLPacket extends BukkitRunnable {
 			
 			final int px = (int) pLoc.getX(), pz = (int) pLoc.getZ(), py = (int) pLoc.getY();
 			
-			int id = nextId;
+			int id = Jammer.startId;
 
 			for (int x = px - radius; x < (px + (radius)); x = x + spread){
 				for (int z = pz - radius; z < (pz + (radius)); z = z + spread){

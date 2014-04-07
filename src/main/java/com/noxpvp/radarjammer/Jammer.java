@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import com.dsh105.holoapi.util.TagIdGenerator;
+import com.noxpvp.core.packet.NoxPacketUtil;
 import com.noxpvp.radarjammer.packet.JammerBKPacket;
 import com.noxpvp.radarjammer.packet.JammerPLPacket;
 
@@ -44,7 +45,7 @@ public class Jammer{
 			if (RadarJammer.isHoloAPIActive())
 				startId = TagIdGenerator.nextId(1000);
 			else if (RadarJammer.isNoxCoreActive())
-				startId = com.noxpvp.core.packet.NoxPacketUtil.getNewEntityId(1000);
+				startId = NoxPacketUtil.getNewEntityId(1000);
 			else
 				startId = Short.MAX_VALUE + 20000;//This will still most likely be compatible with other entity id plugins like holograms, even if its not holoapi
 		}

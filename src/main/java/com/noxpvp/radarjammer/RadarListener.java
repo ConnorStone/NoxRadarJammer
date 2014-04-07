@@ -2,6 +2,7 @@ package com.noxpvp.radarjammer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -15,11 +16,13 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.noxpvp.radarjammer.packet.UpdateProjectilePLPacket;
+import com.noxpvp.radarjammer.packet.WrapperPlayClientChat;
 
 public class RadarListener extends PacketAdapter implements Listener {
 
@@ -50,7 +53,17 @@ public class RadarListener extends PacketAdapter implements Listener {
 		Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 			
 			public void run() {
-				p.sendMessage(voxelMapStopper);			
+//				try {
+//					WrapperPlayClientChat message = new WrapperPlayClientChat();
+//					message.setMessage(voxelMapStopper);
+//					
+//					ProtocolLibrary.getProtocolManager().sendServerPacket(p, message.getHandle(), false);
+//				} catch (Exception e) {
+//					getPlugin().getLogger().logp(Level.SEVERE, "RadarListener.java", "onPlayerJoin(org.bukkit.event.player.PlayerJoinEvent event)", "Oh nos...");
+//					e.printStackTrace();
+//				}
+				
+				p.sendMessage(voxelMapStopper);
 				plugin.getJammer().addJam(p);
 			}
 		}, 2);

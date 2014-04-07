@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.noxpvp</groupId>
 	<artifactId>NoxRadarJammer</artifactId>
-	<version>1.2.7 Beta</version>
+	<version>1.2.8 Beta</version>
 	<name>RadarJammer.</name>
 	<description>Attempts to stop radar and tracer hacking on minecraft servers</description>
 	<repositories>
@@ -24,6 +24,12 @@
 		<repository>
 			<id>hawk-repo</id>
 			<url>http://ci.hawkfalcon.com/plugin/repository/everything/</url>
+		</repository>
+		
+		<!-- VanishNoPacket -->
+		<repository>
+		    <id>kitteh-repo</id>
+		    <url>http://repo.kitteh.org/content/groups/public</url>
 		</repository>
 	
 		<!-- Bukkit repo -->
@@ -70,7 +76,14 @@
 		<dependency>
 			<groupId>com.dsh105</groupId>
 			<artifactId>HoloAPI</artifactId>
-			<version>1.0.7-SNAPSHOT</version>
+			<version>1.2.1-SNAPSHOT</version>
+		</dependency>
+		
+		<!-- VanishNoPacket -holoapi -->
+		<dependency>
+		    <groupId>org.kitteh</groupId>
+		    <artifactId>VanishNoPacket</artifactId>
+		    <version>LATEST</version>
 		</dependency>
 		
 		<!-- BKCommonLib Depend-->

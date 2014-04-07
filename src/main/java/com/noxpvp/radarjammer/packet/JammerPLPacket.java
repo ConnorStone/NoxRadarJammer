@@ -1,5 +1,6 @@
 package com.noxpvp.radarjammer.packet;
 
+import java.util.UUID;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.math.RandomUtils;
@@ -69,7 +70,7 @@ public class JammerPLPacket extends BukkitRunnable {
 					WrapperPlayServerNamedEntitySpawn plJammerPacketWrapper = new WrapperPlayServerNamedEntitySpawn();
 					
 					plJammerPacketWrapper.setEntityID(++nextId);
-					plJammerPacketWrapper.setPlayerUUID("notarealuuid");
+					plJammerPacketWrapper.setPlayerUUID(new UUID(10, 0).toString());
 					plJammerPacketWrapper.setPlayerName(random);
 					plJammerPacketWrapper.setX(x);
 					plJammerPacketWrapper.setY(height);
