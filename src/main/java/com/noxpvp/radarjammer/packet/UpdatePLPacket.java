@@ -62,7 +62,7 @@ public class UpdatePLPacket extends BukkitRunnable {
 				}
 			}
 		} catch (Exception e) {
-			plugin.getLogger().logp(Level.SEVERE, "JammerUpdatePacket.java", "run()", "uh oh...");
+			plugin.getLogger().logp(Level.SEVERE, "UpdatePlPacket.java", "run()", "uh oh...");
 			e.printStackTrace();
 		}
 		

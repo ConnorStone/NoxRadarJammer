@@ -11,7 +11,6 @@ import org.bukkit.util.Vector;
 
 import com.dsh105.holoapi.util.TagIdGenerator;
 import com.noxpvp.core.packet.NoxPacketUtil;
-import com.noxpvp.radarjammer.packet.JammerBKPacket;
 import com.noxpvp.radarjammer.packet.JammerPLPacket;
 
 public class Jammer{
@@ -23,13 +22,11 @@ public class Jammer{
 	public Callable<List<Player>> getUpdatedLocPlayers;
 
 	private ConcurrentHashMap<String, Vector> jamming;
-	private boolean useProtocolLib;
-	private int radius, spread, period;
+	private int radius, spread;
 	
 	public Jammer(RadarJammer plugin, int updatePeriod) {
 		
 		this.jamming = new ConcurrentHashMap<String, Vector>();
-		this.period = updatePeriod;
 		
 		this.radius = plugin.getRadarConfig().getInt(RadarJammer.NODE_RADIUS, 40);
 		this.spread = plugin.getRadarConfig().getInt(RadarJammer.NODE_SPREAD, 8);
@@ -49,8 +46,6 @@ public class Jammer{
 			else
 				startId = Short.MAX_VALUE + 20000;//This will still most likely be compatible with other entity id plugins like holograms, even if its not holoapi
 		}
-		
-		useProtocolLib = !RadarJammer.isBkCommonLibActive();
 		
 		for (Player p : Bukkit.getOnlinePlayers()){
 			if (p.hasPermission(RadarJammer.PERM_EXEMPT))
@@ -129,16 +124,13 @@ public class Jammer{
 			String[] names = new String[players.length];
 			
 			for (int i = 0; i < players.length; i++){
-				if (!p.canSee(players[i])/* || players[i].equals(p)*/)
+				if (!p.canSee(players[i]) || players[i].equals(p))
 					continue;	
 				
 				names[i] = players[i].getName();
 			}
 			if (names[0] != null && names.length > 0)
-				if (useProtocolLib)
-					new JammerPLPacket(p, radius, spread, names).runTaskAsynchronously(RadarJammer.getInstance());
-				else
-					new JammerBKPacket(p, radius, spread, names).runTaskAsynchronously(RadarJammer.getInstance());
+				new JammerPLPacket(p, radius, spread, names).runTaskAsynchronously(RadarJammer.getInstance());
 		}
 		
 	}

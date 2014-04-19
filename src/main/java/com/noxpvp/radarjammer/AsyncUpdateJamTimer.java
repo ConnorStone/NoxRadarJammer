@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import com.noxpvp.radarjammer.packet.UpdateBKPacket;
 import com.noxpvp.radarjammer.packet.UpdatePLPacket;
 
 public class AsyncUpdateJamTimer extends BukkitRunnable {
@@ -18,12 +17,10 @@ public class AsyncUpdateJamTimer extends BukkitRunnable {
 	private final RadarJammer plugin;
 	public List<String> toUpdate;
 
-	private boolean usePL;
 	
 	public AsyncUpdateJamTimer(RadarJammer plugin) {
 		
 		this.plugin = plugin;
-		this.usePL = !RadarJammer.isBkCommonLibActive();
 	}
 	
 	public void run() {
@@ -31,13 +28,9 @@ public class AsyncUpdateJamTimer extends BukkitRunnable {
 		
 		try {
 			if (players.get() != null && !players.get().isEmpty())
-				if (usePL) {
-					for (Player p : players.get())
-						new UpdatePLPacket(p).runTaskAsynchronously(plugin);
-				} else {
-					for (Player p : players.get())
-						new UpdateBKPacket(p).runTaskAsynchronously(plugin);
-				}
+				for (Player p : players.get())
+					new UpdatePLPacket(p).runTaskAsynchronously(plugin);
+
 		}
 		catch (InterruptedException e) {}
 		catch (ExecutionException e) {}

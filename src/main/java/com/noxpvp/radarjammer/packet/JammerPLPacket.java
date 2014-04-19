@@ -65,7 +65,9 @@ public class JammerPLPacket extends BukkitRunnable {
 					int low = py - 30, high = py + 30;
 					height = (int) Math.floor(RandomUtils.nextInt(high - low) + low);
 					
-					String random = names[RandomUtils.nextInt(names.length)];
+					String random = names[RandomUtils.nextInt(names.length - 1)];
+					if (random == null || random == "")
+						continue;
 					
 					WrapperPlayServerNamedEntitySpawn plJammerPacketWrapper = new WrapperPlayServerNamedEntitySpawn();
 					
@@ -82,7 +84,7 @@ public class JammerPLPacket extends BukkitRunnable {
 				}
 			}
 		} catch (Exception e) {
-			plugin.getLogger().logp(Level.SEVERE, "Jammer.java", "jam(org.bukkit.entity.Player)", "uh oh...");
+			plugin.getLogger().logp(Level.SEVERE, "JammerPLPacket.java", "run()", "uh oh...");
 			e.printStackTrace();
 		}
 		

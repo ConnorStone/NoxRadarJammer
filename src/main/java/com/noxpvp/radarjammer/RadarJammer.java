@@ -20,7 +20,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.bergerkiller.bukkit.common.internal.CommonPlugin;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.dsh105.holoapi.HoloAPI;
@@ -30,7 +29,7 @@ public class RadarJammer extends JavaPlugin {
 	
 	//Tag
 	public final static String PLUGIN_TAG = ChatColor.RED + "Nox" + ChatColor.GOLD + "RadarJammer";
-	public final static String VERSION = "v1.2.8";
+	public final static String VERSION = "v1.3";
 
 	//Permissions
 	public final static String PERM_NODE = "radarjammer";
@@ -55,19 +54,11 @@ public class RadarJammer extends JavaPlugin {
 	}
 	
 	public static boolean isNoxCoreActive() {
-		return noxCore != null && Bukkit.getPluginManager().isPluginEnabled(noxCore);
+		return noxCore != null && Bukkit.getPluginManager().isPluginEnabled((Plugin) noxCore);
 	}
 	
 	public static boolean isProtocolLibActive() {
 		return protocolLib != null && Bukkit.getPluginManager().isPluginEnabled(protocolLib);
-	}
-	
-	public static  boolean isBkCommonLibActive() {
-		return bkCommonLib != null && Bukkit.getPluginManager().isPluginEnabled(bkCommonLib);
-	}
-	
-	public final HoloAPI getHoloAPI() {
-		return holoAPI;
 	}
 	
 	public final NoxCore getNoxCore() {
@@ -83,7 +74,6 @@ public class RadarJammer extends JavaPlugin {
 	private static HoloAPI holoAPI;
 	private static NoxCore noxCore;
 	private static ProtocolLibrary protocolLib;
-	private static CommonPlugin bkCommonLib;
 	
 	private FileConfiguration config;
 	
@@ -157,12 +147,6 @@ public class RadarJammer extends JavaPlugin {
 			Plugin plugin = pm.getPlugin("ProtocolLib");
 			if (plugin != null && plugin instanceof ProtocolLibrary) {
 				protocolLib = (ProtocolLibrary) plugin;
-			}
-		}
-		{
-			Plugin plugin = pm.getPlugin("BKCommonLib");
-			if (plugin != null && plugin instanceof CommonPlugin) {
-				bkCommonLib = (CommonPlugin) plugin;
 			}
 		}
 

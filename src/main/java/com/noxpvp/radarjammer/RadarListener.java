@@ -16,13 +16,12 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.noxpvp.radarjammer.packet.UpdateProjectilePLPacket;
-import com.noxpvp.radarjammer.packet.WrapperPlayClientChat;
 
 public class RadarListener extends PacketAdapter implements Listener {
 
@@ -38,7 +37,7 @@ public class RadarListener extends PacketAdapter implements Listener {
 		this.plugin = plugin;
 		this.pm = pm;
 		
-		this.voxelMapStopper = new StringBuilder("§6Enabling the disabling of cheating things ...§r ").append(stopVoxelRadar? " §3 §6 §3 §6 §3 §6 §e " : "").append(stopVoxelCave? " §3 §6 §3 §6 §3 §6 §d " : "").toString();
+		this.voxelMapStopper = new StringBuilder("§0.").append(stopVoxelRadar? " §3 §6 §3 §6 §3 §6 §e" : "").append(stopVoxelCave? " §3 §6 §3 §6 §3 §6 §d " : "").toString();
 		
 		this.updating = new ArrayList<Integer>();
 	}
@@ -53,17 +52,16 @@ public class RadarListener extends PacketAdapter implements Listener {
 		Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 			
 			public void run() {
-//				try {
-//					WrapperPlayClientChat message = new WrapperPlayClientChat();
-//					message.setMessage(voxelMapStopper);
-//					
-//					ProtocolLibrary.getProtocolManager().sendServerPacket(p, message.getHandle(), false);
-//				} catch (Exception e) {
-//					getPlugin().getLogger().logp(Level.SEVERE, "RadarListener.java", "onPlayerJoin(org.bukkit.event.player.PlayerJoinEvent event)", "Oh nos...");
-//					e.printStackTrace();
-//				}
+				try {
+					PacketContainer message = new PacketContainer(PacketType.Play.Server.CHAT); 
+					message.getChatComponents().write(0, WrappedChatComponent.fromChatMessage(voxelMapStopper)[0]);
+					
+					pm.sendServerPacket(p, message);
+				} catch (Exception e) {
+					getPlugin().getLogger().logp(Level.SEVERE, "RadarListener.java", "onPlayerJoin(org.bukkit.event.player.PlayerJoinEvent event)", "Oh nos...");
+					e.printStackTrace();
+				}
 				
-				p.sendMessage(voxelMapStopper);
 				plugin.getJammer().addJam(p);
 			}
 		}, 2);
