@@ -1,6 +1,5 @@
 package com.noxpvp.radarjammer;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +28,7 @@ public class RadarJammer extends JavaPlugin {
 	
 	//Tag
 	public final static String PLUGIN_TAG = ChatColor.RED + "Nox" + ChatColor.GOLD + "RadarJammer";
-	public final static String VERSION = "v1.3";
+	public final static String VERSION = "v1.3.1";
 
 	//Permissions
 	public final static String PERM_NODE = "radarjammer";
@@ -108,13 +107,7 @@ public class RadarJammer extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
-		try {
-			File dataFolder = getDataFolder();
-			if (!dataFolder.exists())
-				dataFolder.createNewFile();
-			
-			config.save(dataFolder);
-		} catch (Exception e) { e.printStackTrace(); }
+		getInstance().saveConfig();
 		
 	}
 
