@@ -24,12 +24,10 @@ public class JammerPLPacket extends BukkitRunnable {
 
 	private int radius;
 	private int spread;
-	private int height;		
 	
 	private String[] names;
 	private final Player p;
 	private final int px;
-	private final int py;
 	private final int pz;
 	
 	public JammerPLPacket(Player p, int radius, int spread, String[] names) {
@@ -37,7 +35,7 @@ public class JammerPLPacket extends BukkitRunnable {
 		this.plugin = RadarJammer.getInstance();
 		
 		watcher = new WrappedDataWatcher();
-		watcher.setObject(0, (byte) 0x20);
+		watcher.setObject(0, (byte) 0x02);
 		watcher.setObject(6, (float) RandomUtils.nextInt(20 - 4) + 4);
 		watcher.setObject(12, (int) 0);
 		
@@ -52,7 +50,6 @@ public class JammerPLPacket extends BukkitRunnable {
 		
 		Location pLoc = p.getLocation();
 		px = (int) pLoc.getX();
-		py = (int) pLoc.getY();
 		pz = (int) pLoc.getZ();
 		
 	}
@@ -60,10 +57,7 @@ public class JammerPLPacket extends BukkitRunnable {
 	public void run() {
 		try {
 			for (int x = px - radius; x < (px + (radius)); x = x + spread){
-				for (int z = pz - radius; z < (pz + (radius)); z = z + spread){
-					
-					int low = py - 30, high = py + 30;
-					height = (int) Math.floor(RandomUtils.nextInt(high - low) + low);
+				for (int z = pz - radius; z < (pz + (radius)); z = z + spread){					
 					
 					String random = names[RandomUtils.nextInt(names.length - 1)];
 					if (random == null || random == "")
@@ -75,7 +69,7 @@ public class JammerPLPacket extends BukkitRunnable {
 					plJammerPacketWrapper.setPlayerUUID(new UUID(10, 0).toString());
 					plJammerPacketWrapper.setPlayerName(random);
 					plJammerPacketWrapper.setX(x);
-					plJammerPacketWrapper.setY(height);
+					plJammerPacketWrapper.setY(-2);
 					plJammerPacketWrapper.setZ(z);
 					plJammerPacketWrapper.setMetadata(watcher);
 					

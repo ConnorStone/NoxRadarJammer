@@ -2,7 +2,6 @@ package com.noxpvp.radarjammer.packet;
 
 import java.util.logging.Level;
 
-import org.apache.commons.lang.math.RandomUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -40,21 +39,18 @@ public class UpdatePLPacket extends BukkitRunnable {
 	public void run() {
 		try {
 			
-			final int px = (int) pLoc.getX(), pz = (int) pLoc.getZ(), py = (int) pLoc.getY();
+			final int px = (int) pLoc.getX(), pz = (int) pLoc.getZ();
 			
 			int id = Jammer.startId;
 
 			for (int x = px - radius; x < (px + (radius)); x = x + spread){
 				for (int z = pz - radius; z < (pz + (radius)); z = z + spread){
-					
-					int low = py - 30, high = py + 30;
-					int y = (int) Math.floor(RandomUtils.nextInt(high - low) + low);
 
 					plUpdatePacketWrapper = new WrapperPlayServerEntityTeleport();
 					
 					plUpdatePacketWrapper.setEntityID(id++);
 					plUpdatePacketWrapper.setX(x);
-					plUpdatePacketWrapper.setY(y);
+					plUpdatePacketWrapper.setY(-2);
 					plUpdatePacketWrapper.setZ(z);
 					
 					pm.sendServerPacket(p, plUpdatePacketWrapper.getHandle(), false);
