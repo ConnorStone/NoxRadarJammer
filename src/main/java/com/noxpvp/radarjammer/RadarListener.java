@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolManager;
@@ -74,7 +75,6 @@ public class RadarListener extends PacketAdapter implements Listener {
 		plugin.getJammer().unJam(event.getPlayer().getName());
 	}
 	
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onRespawn(PlayerRespawnEvent event) {
 		final Player p;
 		if ((p = event.getPlayer()) != null)
@@ -84,6 +84,15 @@ public class RadarListener extends PacketAdapter implements Listener {
 				
 				}
 			}, 5);
+	}
+	
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onPlayerTeleport(PlayerTeleportEvent event) {
+		if (!(event.getFrom().getWorld().equals(event.getTo().getWorld())) ||
+				(event.getFrom().distance(event.getTo()) > 50)) {
+			
+			plugin.getJammer().jamFullRad(event.getPlayer());
+		}
 	}
 
 	@Override

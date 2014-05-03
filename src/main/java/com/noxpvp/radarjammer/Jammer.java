@@ -130,7 +130,7 @@ public class Jammer{
 				names[i] = players[i].getName();
 			}
 			if (names[0] != null && names.length > 0)
-				new JammerPLPacket(p, radius, spread, names).runTaskAsynchronously(RadarJammer.getInstance());
+				new JammerPLPacket(p, radius, spread, names).runTaskLaterAsynchronously(RadarJammer.getInstance(), 20);
 		}
 		
 	}
