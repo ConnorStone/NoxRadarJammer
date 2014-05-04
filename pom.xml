@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.noxpvp</groupId>
 	<artifactId>NoxRadarJammer</artifactId>
-	<version>1.3.3 Beta</version>
+	<version>1.3.4 Beta</version>
 	<name>RadarJammer.</name>
 	<description>Attempts to stop radar and tracer hacking on minecraft servers</description>
 	<repositories>

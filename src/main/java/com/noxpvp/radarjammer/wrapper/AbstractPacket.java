@@ -15,7 +15,7 @@
  *  02111-1307 USA
  */
 
-package com.noxpvp.radarjammer.packet;
+package com.noxpvp.radarjammer.wrapper;
 
 import java.lang.reflect.InvocationTargetException;
 

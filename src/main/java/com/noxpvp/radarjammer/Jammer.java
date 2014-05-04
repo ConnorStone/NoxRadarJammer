@@ -6,27 +6,39 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
+import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.dsh105.holoapi.util.TagIdGenerator;
 import com.noxpvp.core.packet.NoxPacketUtil;
-import com.noxpvp.radarjammer.packet.JammerPLPacket;
+import com.noxpvp.radarjammer.packet.AsyncMapScrambler;
+import com.noxpvp.radarjammer.packet.AsyncTracerScrambler;
 
 public class Jammer{
 
 	public final static int maxSize = 64, maxSpread = 20, minSpread = 2;
+	
+	public final WrappedDataWatcher crouchPlayer, invisPlayer;
 
 	public static int startId = 0;
 	
 	public Callable<List<Player>> getUpdatedLocPlayers;
 
-	private ConcurrentHashMap<String, Vector> jamming;
+	private ConcurrentHashMap<String, Location> jamming;
 	private int radius, spread;
 	
 	public Jammer(RadarJammer plugin, int updatePeriod) {
 		
-		this.jamming = new ConcurrentHashMap<String, Vector>();
+		this.jamming = new ConcurrentHashMap<String, Location>();
+		
+		this.crouchPlayer = new WrappedDataWatcher();
+		this.crouchPlayer.setObject(0, (byte) 0x02);
+		this.crouchPlayer.setObject(6, (float) 20);
+		this.crouchPlayer.setObject(12, (int) 0);
+		
+		this.invisPlayer = crouchPlayer.deepClone();
+		this.invisPlayer.setObject(0, (byte) 0x20);
 		
 		this.radius = plugin.getRadarConfig().getInt(RadarJammer.NODE_RADIUS, 40);
 		this.spread = plugin.getRadarConfig().getInt(RadarJammer.NODE_SPREAD, 8);
@@ -44,16 +56,16 @@ public class Jammer{
 			else if (RadarJammer.isNoxCoreActive())
 				startId = NoxPacketUtil.getNewEntityId(1000);
 			else
-				startId = Short.MAX_VALUE + 20000;//This will still most likely be compatible with other entity id plugins like holograms, even if its not holoapi
+				startId = 123456789;//This will still most likely be compatible with other entity id plugins like holograms, even if its not holoapi
 		}
 		
 		for (Player p : Bukkit.getOnlinePlayers()){
 			if (p.hasPermission(RadarJammer.PERM_EXEMPT))
 				continue;
 			
-			jamming.putIfAbsent(p.getName(), p.getLocation().toVector());
-			jamFullRad(p);
-				
+			jamming.putIfAbsent(p.getName(), p.getLocation());
+			sendMapScramble(p);
+			
 		}
 		
 		this.getUpdatedLocPlayers = new Callable<List<Player>>() {
@@ -82,10 +94,10 @@ public class Jammer{
 			if (!jamming.containsKey(name))
 				continue;
 			
-			Vector old = jamming.get(name);
-			Vector cur = p.getLocation().toVector();
+			Location old = jamming.get(name);
+			Location cur = p.getLocation();
 			
-			if (old.distance(cur) < 10)//Must move 10 blocks from last known location for an update
+			if (old.getWorld() == cur.getWorld() && old.distance(cur) < 5)
 				continue;
 			
 			jamming.remove(name);
@@ -103,11 +115,13 @@ public class Jammer{
 	}
 	
 	public void addJam(Player p){
-		jamming.put(p.getName(), p.getLocation().toVector());
-		jamFullRad(p);
+		jamming.put(p.getName(), p.getLocation());
+		
+		sendMapScramble(p);
+		sendFauxTracers(p);
 	}
 	
-	public void jamFullRad(Player p){
+	public void sendMapScramble(Player p){
 		String name = p.getName();
 		
 		if (!p.isOnline()){
@@ -119,20 +133,30 @@ public class Jammer{
 		} else if (!jamming.containsKey(name))
 			return;
 		
-		{
-			final Player[] players = Bukkit.getOnlinePlayers();
-			String[] names = new String[players.length];
-			
-			for (int i = 0; i < players.length; i++){
-				if (!p.canSee(players[i]) || players[i].equals(p))
-					continue;	
-				
-				names[i] = players[i].getName();
-			}
-			if (names[0] != null && names.length > 0)
-				new JammerPLPacket(p, radius, spread, names).runTaskLaterAsynchronously(RadarJammer.getInstance(), 20);
-		}
+		List<String> fakes;
+		if ((fakes = JammingUtils.getNamesForPlayer(p)) != null)
+			new AsyncMapScrambler(p, getRadius(), getSpread(), fakes).start(20);
 		
+		return;
+	}
+	
+	public void sendFauxTracers(Player p) {
+		String name = p.getName();
+		
+		if (!p.isOnline()){
+			
+			if (jamming.containsKey(name))
+				jamming.remove(name);
+			
+			return;
+		} else if (!jamming.containsKey(name))
+			return;
+		
+		List<String> fakes;
+		if ((fakes = JammingUtils.getNamesForPlayer(p)) != null)
+			new AsyncTracerScrambler(p, getRadius(), getSpread(), fakes).start(20);
+		
+		return;
 	}
 	
 }

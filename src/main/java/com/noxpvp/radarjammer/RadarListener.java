@@ -80,7 +80,7 @@ public class RadarListener extends PacketAdapter implements Listener {
 		if ((p = event.getPlayer()) != null)
 			Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 				public void run() {
-					plugin.getJammer().jamFullRad(p);
+					plugin.getJammer().sendMapScramble(p);
 				
 				}
 			}, 5);
@@ -91,7 +91,8 @@ public class RadarListener extends PacketAdapter implements Listener {
 		if (!(event.getFrom().getWorld().equals(event.getTo().getWorld())) ||
 				(event.getFrom().distance(event.getTo()) > 50)) {
 			
-			plugin.getJammer().jamFullRad(event.getPlayer());
+			plugin.getJammer().sendMapScramble(event.getPlayer());
+			plugin.getJammer().sendFauxTracers(event.getPlayer());
 		}
 	}
 

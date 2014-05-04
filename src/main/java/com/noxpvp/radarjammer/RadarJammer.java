@@ -28,7 +28,7 @@ public class RadarJammer extends JavaPlugin {
 	
 	//Tag
 	public final static String PLUGIN_TAG = ChatColor.RED + "Nox" + ChatColor.GOLD + "RadarJammer";
-	public final static String VERSION = "v1.3.3";
+	public final static String VERSION = "v1.3.4 Beta";
 
 	//Permissions
 	public final static String PERM_NODE = "radarjammer";

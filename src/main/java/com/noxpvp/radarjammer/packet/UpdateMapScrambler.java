@@ -5,31 +5,26 @@ import java.util.logging.Level;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import com.noxpvp.radarjammer.Jammer;
+import com.noxpvp.radarjammer.JammingUtils;
 import com.noxpvp.radarjammer.RadarJammer;
 
-public class UpdatePLPacket extends BukkitRunnable {
+public class UpdateMapScrambler extends BukkitRunnable {
 	private RadarJammer plugin;
 	
-	private WrapperPlayServerEntityTeleport plUpdatePacketWrapper;
-	private ProtocolManager pm;
-	
 	private final Player p;
-	private final Location pLoc;
-
+	private final Vector pLoc;
 	private int radius;
 	private int spread;
 	
-	public UpdatePLPacket(Player p) {
+	public UpdateMapScrambler(Player p) {
 		
 		this.plugin = RadarJammer.getInstance();
-		this.pm = ProtocolLibrary.getProtocolManager();
 		
 		this.p = p;
-		this.pLoc = p.getLocation();
+		this.pLoc = p.getLocation().toVector();
 		
 		this.radius = plugin.getJammer().getRadius();
 		this.spread = plugin.getJammer().getSpread();
@@ -46,14 +41,7 @@ public class UpdatePLPacket extends BukkitRunnable {
 			for (int x = px - radius; x < (px + (radius)); x = x + spread){
 				for (int z = pz - radius; z < (pz + (radius)); z = z + spread){
 
-					plUpdatePacketWrapper = new WrapperPlayServerEntityTeleport();
-					
-					plUpdatePacketWrapper.setEntityID(id++);
-					plUpdatePacketWrapper.setX(x);
-					plUpdatePacketWrapper.setY(-2);
-					plUpdatePacketWrapper.setZ(z);
-					
-					pm.sendServerPacket(p, plUpdatePacketWrapper.getHandle(), false);
+					JammingUtils.updateEntityLoc(p, new Location(p.getWorld(), x, -2, z), id++);
 					
 				}
 			}
