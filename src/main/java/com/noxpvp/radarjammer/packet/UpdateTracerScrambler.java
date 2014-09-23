@@ -13,39 +13,53 @@ import com.noxpvp.radarjammer.JammingUtils;
 import com.noxpvp.radarjammer.RadarJammer;
 
 public class UpdateTracerScrambler extends BukkitRunnable {
-	private RadarJammer plugin;
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Instance Fields
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	private final RadarJammer plugin;
 	
 	private final Player p;
 	private final Vector pLoc;
 	private final int high, low;
 	
-	private int radius;
-	private int spread;
+	private final int radius;
+	private final int spread;
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Constructors
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
 	public UpdateTracerScrambler(Player p) {
-		
-		this.plugin = RadarJammer.getInstance();
+	
+		plugin = RadarJammer.getInstance();
 		
 		this.p = p;
-		this.pLoc = p.getLocation().toVector();
+		pLoc = p.getLocation().toVector();
 		high = (int) (pLoc.getY() + 20);
 		low = high - 40;
 		
-		this.radius = plugin.getJammer().getRadius();
-		this.spread = plugin.getJammer().getSpread();
+		radius = plugin.getJammer().getRadius();
+		spread = plugin.getJammer().getSpread();
 		
 	}
-
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Instance Methods
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
 	public void run() {
+	
 		try {
 			
 			final int px = (int) pLoc.getX(), pz = (int) pLoc.getZ();
 			
 			int id = Jammer.startId + 500;
-
-			for (int x = px - radius; x < (px + (radius)); x = x + spread){
-				for (int z = pz - radius; z < (pz + (radius)); z = z + spread){
-
+			
+			for (int x = px - radius; x < px + radius; x = x + spread) {
+				for (int z = pz - radius; z < pz + radius; z = z + spread) {
+					
 					Location cur;
 					do {
 						cur = new Location(p.getWorld(), x, RandomUtils.nextInt(high - low) + low, z);
@@ -55,11 +69,11 @@ public class UpdateTracerScrambler extends BukkitRunnable {
 					
 				}
 			}
-		} catch (Exception e) {
-			plugin.getLogger().logp(Level.SEVERE, "UpdatePlPacket.java", "run()", "uh oh...");
+		} catch (final Exception e) {
+			plugin.getLogger().logp(Level.SEVERE, getClass().getName(), "run()", "uh oh...");
 			e.printStackTrace();
 		}
 		
 	}
-
+	
 }

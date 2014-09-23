@@ -12,44 +12,58 @@ import com.noxpvp.radarjammer.JammingUtils;
 import com.noxpvp.radarjammer.RadarJammer;
 
 public class UpdateMapScrambler extends BukkitRunnable {
-	private RadarJammer plugin;
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Instance Fields
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	private final RadarJammer plugin;
 	
 	private final Player p;
 	private final Vector pLoc;
-	private int radius;
-	private int spread;
+	private final int radius;
+	private final int spread;
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Constructors
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
 	public UpdateMapScrambler(Player p) {
-		
-		this.plugin = RadarJammer.getInstance();
+	
+		plugin = RadarJammer.getInstance();
 		
 		this.p = p;
-		this.pLoc = p.getLocation().toVector();
+		pLoc = p.getLocation().toVector();
 		
-		this.radius = plugin.getJammer().getRadius();
-		this.spread = plugin.getJammer().getSpread();
+		radius = plugin.getJammer().getRadius();
+		spread = plugin.getJammer().getSpread();
 		
 	}
-
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Instance Methods
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
 	public void run() {
+	
 		try {
 			
 			final int px = (int) pLoc.getX(), pz = (int) pLoc.getZ();
 			
 			int id = Jammer.startId;
-
-			for (int x = px - radius; x < (px + (radius)); x = x + spread){
-				for (int z = pz - radius; z < (pz + (radius)); z = z + spread){
-
+			
+			for (int x = px - radius; x < px + radius; x = x + spread) {
+				for (int z = pz - radius; z < pz + radius; z = z + spread) {
+					
 					JammingUtils.updateEntityLoc(p, new Location(p.getWorld(), x, -2, z), id++);
 					
 				}
 			}
-		} catch (Exception e) {
-			plugin.getLogger().logp(Level.SEVERE, "UpdatePlPacket.java", "run()", "uh oh...");
+		} catch (final Exception e) {
+			plugin.getLogger().logp(Level.SEVERE, getClass().getName(), "run()", "uh oh...");
 			e.printStackTrace();
 		}
 		
 	}
-
+	
 }

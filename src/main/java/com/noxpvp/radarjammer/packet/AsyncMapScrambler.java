@@ -14,52 +14,67 @@ import com.noxpvp.radarjammer.JammingUtils;
 import com.noxpvp.radarjammer.RadarJammer;
 
 public class AsyncMapScrambler extends BukkitRunnable {
-	private RadarJammer plugin;
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Instance Fields
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	private final RadarJammer plugin;
 	
 	private int nextId;
-
-	private int radius;
-	private int spread;
 	
-	private List<String> names;
+	private final int radius;
+	private final int spread;
+	
+	private final List<String> names;
 	private final Player p;
 	private final Vector pLoc;
 	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Constructors
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
 	public AsyncMapScrambler(Player p, int radius, int spread, List<String> names) {
-		
-		this.plugin = RadarJammer.getInstance();
+	
+		plugin = RadarJammer.getInstance();
 		
 		this.p = p;
-		this.nextId = Jammer.startId;
+		nextId = Jammer.startId;
 		
 		this.radius = radius;
 		this.spread = spread;
-		this.names = names;		
+		this.names = names;
 		
 		pLoc = p.getLocation().toVector();
 		
 	}
 	
-	public void start(int delayTicks) {
-		runTaskLaterAsynchronously(plugin, delayTicks);
-	}
-
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Instance Methods
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
 	public void run() {
+	
 		try {
-			for (int x = (int) (pLoc.getX() - radius); x < (pLoc.getX() + radius); x = x + spread){
-				for (int z = (int) (pLoc.getZ() - radius); z < (pLoc.getZ() + radius); z = z + spread){					
+			for (int x = (int) (pLoc.getX() - radius); x < pLoc.getX() + radius; x = x + spread) {
+				for (int z = (int) (pLoc.getZ() - radius); z < pLoc.getZ() + radius; z = z + spread) {
 					
-					String random = names.get(names.size() < 2? 0 : RandomUtils.nextInt(names.size() - 1));
+					final String random = names.get(names.size() < 2 ? 0 : RandomUtils.nextInt(names.size() - 1));
 					
 					JammingUtils.sendCrouchedPlayer(p, new Location(p.getWorld(), x, -2, z), ++nextId, random);
 					
 				}
 			}
-		} catch (Exception e) {
-			plugin.getLogger().logp(Level.SEVERE, this.getClass().getName(), "run()", "uh oh...");
+		} catch (final Exception e) {
+			plugin.getLogger().logp(Level.SEVERE, getClass().getName(), "run()", "uh oh...");
 			e.printStackTrace();
 		}
 		
 	}
-
+	
+	public void start(int delayTicks) {
+	
+		runTaskLaterAsynchronously(plugin, delayTicks);
+	}
+	
 }

@@ -13,18 +13,32 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.reflect.FieldAccessException;
 
 public class UpdateProjectilePLPacket extends BukkitRunnable {
-
-	private ProtocolManager pm;
-	private Projectile p;
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Instance Fields
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	private final ProtocolManager pm;
+	private final Projectile p;
 	private Location lastLoc;
-
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Constructors
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
 	public UpdateProjectilePLPacket(ProtocolManager pm, Projectile p) {
+	
 		this.pm = pm;
 		this.p = p;
 	}
 	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Instance Methods
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
 	public void run() {
-		if (!p.isValid() || p.isOnGround() || p.isDead() || (lastLoc != null && p.getLocation().equals(lastLoc))) {
+	
+		if (!p.isValid() || p.isOnGround() || p.isDead() || lastLoc != null && p.getLocation().equals(lastLoc)) {
 			cancel();
 			return;
 		}
@@ -33,7 +47,7 @@ public class UpdateProjectilePLPacket extends BukkitRunnable {
 		
 		try {
 			pm.updateEntity(p, getNearbyPlayers(p, 50));
-		} catch (FieldAccessException e) {
+		} catch (final FieldAccessException e) {
 			cancel();
 			return;
 		}
@@ -41,14 +55,18 @@ public class UpdateProjectilePLPacket extends BukkitRunnable {
 	}
 	
 	private List<Player> getNearbyPlayers(Entity e, int radius) {
-		List<Player> list = new ArrayList<Player>();
+	
+		final List<Player> list = new ArrayList<Player>();
 		
-		for (Entity it : e.getNearbyEntities(radius, radius, radius))
-			if (!(it instanceof Player)) continue;
-			else
+		for (final Entity it : e.getNearbyEntities(radius, radius, radius)) {
+			if (!(it instanceof Player)) {
+				continue;
+			} else {
 				list.add((Player) it);
+			}
+		}
 		
 		return list;
 	}
-
+	
 }

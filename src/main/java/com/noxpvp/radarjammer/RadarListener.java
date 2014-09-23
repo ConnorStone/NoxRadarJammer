@@ -25,41 +25,75 @@ import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.noxpvp.radarjammer.packet.UpdateProjectilePLPacket;
 
 public class RadarListener extends PacketAdapter implements Listener {
-
-	private RadarJammer plugin;
-	private ProtocolManager pm;
-	private String voxelMapStopper;
 	
-	private List<Integer> updating;
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Instance Fields
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	private final RadarJammer plugin;
+	private final ProtocolManager pm;
+	private final String voxelMapStopper;
+	
+	private final List<Integer> updating;
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Constructors
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
 	public RadarListener(RadarJammer plugin, ProtocolManager pm, boolean stopVoxelRadar, boolean stopVoxelCave) {
+	
 		super(plugin, PacketType.Play.Server.SPAWN_ENTITY);
 		
 		this.plugin = plugin;
 		this.pm = pm;
 		
-		this.voxelMapStopper = new StringBuilder("§0.").append(stopVoxelRadar? " §3 §6 §3 §6 §3 §6 §e" : "").append(stopVoxelCave? " §3 §6 §3 §6 §3 §6 §d " : "").toString();
+		voxelMapStopper =
+			new StringBuilder("§0.").append(stopVoxelRadar ? " §3 §6 §3 §6 §3 §6 §e" : "")
+				.append(stopVoxelCave ? " §3 §6 §3 §6 §3 §6 §d " : "").toString();
 		
-		this.updating = new ArrayList<Integer>();
+		updating = new ArrayList<Integer>();
+	}
+	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Instance Methods
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	@Override
+	public void onPacketSending(PacketEvent arg0) {
+	
+		final PacketContainer packet = arg0.getPacket();
+		
+		final Entity e = packet.getEntityModifier(arg0).read(0);
+		if (e != null && e instanceof Projectile && !updating.contains(e.getEntityId())) {
+			updating.add(e.getEntityId());
+			new UpdateProjectilePLPacket(pm, (Projectile) packet.getEntityModifier(arg0).read(0)).runTaskTimer(plugin,
+				0, 3);
+		}
+		
+		return;
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onPlayerJoin(PlayerJoinEvent event){
+	public void onPlayerJoin(PlayerJoinEvent event) {
+	
 		final Player p = event.getPlayer();
 		
-		if (p.hasPermission(RadarJammer.PERM_EXEMPT))
+		if (p.hasPermission(RadarJammer.PERM_EXEMPT)) {
 			return;
+		}
 		
 		Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 			
 			public void run() {
+			
 				try {
-					PacketContainer message = new PacketContainer(PacketType.Play.Server.CHAT); 
+					final PacketContainer message = new PacketContainer(PacketType.Play.Server.CHAT);
 					message.getChatComponents().write(0, WrappedChatComponent.fromChatMessage(voxelMapStopper)[0]);
 					
 					pm.sendServerPacket(p, message);
-				} catch (Exception e) {
-					getPlugin().getLogger().logp(Level.SEVERE, "RadarListener.java", "onPlayerJoin(org.bukkit.event.player.PlayerJoinEvent event)", "Oh nos...");
+				} catch (final Exception e) {
+					getPlugin().getLogger().logp(Level.SEVERE, "RadarListener.java",
+						"onPlayerJoin(org.bukkit.event.player.PlayerJoinEvent event)", "Oh nos...");
 					e.printStackTrace();
 				}
 				
@@ -67,46 +101,38 @@ public class RadarListener extends PacketAdapter implements Listener {
 			}
 		}, 2);
 		
-			
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onPlayerLogout(PlayerQuitEvent event){
-		plugin.getJammer().unJam(event.getPlayer().getName());
-	}
+	public void onPlayerLogout(PlayerQuitEvent event) {
 	
-	public void onRespawn(PlayerRespawnEvent event) {
-		final Player p;
-		if ((p = event.getPlayer()) != null)
-			Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-				public void run() {
-					plugin.getJammer().sendMapScramble(p);
-				
-				}
-			}, 5);
+		plugin.getJammer().unJam(event.getPlayer().getName());
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerTeleport(PlayerTeleportEvent event) {
-		if (!(event.getFrom().getWorld().equals(event.getTo().getWorld())) ||
-				(event.getFrom().distance(event.getTo()) > 50)) {
+	
+		if (!event.getFrom().getWorld().equals(event.getTo().getWorld())
+			|| event.getFrom().distance(event.getTo()) > 50) {
 			
 			plugin.getJammer().sendMapScramble(event.getPlayer());
 			plugin.getJammer().sendFauxTracers(event.getPlayer());
 		}
 	}
-
-	@Override
-	public void onPacketSending(PacketEvent arg0) {
-		PacketContainer packet = arg0.getPacket();
-
-		Entity e = packet.getEntityModifier(arg0).read(0);
-		if (e != null && e instanceof Projectile && !updating.contains(e.getEntityId())) {
-			updating.add(e.getEntityId());
-			new UpdateProjectilePLPacket(pm, (Projectile) packet.getEntityModifier(arg0).read(0)).runTaskTimer(plugin, 0, 3);
+	
+	public void onRespawn(PlayerRespawnEvent event) {
+	
+		final Player p;
+		if ((p = event.getPlayer()) != null) {
+			Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+				
+				public void run() {
+				
+					plugin.getJammer().sendMapScramble(p);
+					
+				}
+			}, 5);
 		}
-		
-		return;
 	}
-
+	
 }
